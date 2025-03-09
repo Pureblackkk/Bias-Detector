@@ -8,22 +8,22 @@ const Inpainter = ({dataset, solutions, normalImages, panoptic, panopticCategori
     return (
         <Grid item xs={12}>
         <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column'}}>
-        <div>
-            <h3>Inpainter</h3>
-            <Container maxWidth="false">
-                {solutions.map((sol, solIndex) => 
-                    <InpaintBlock
-                        solution={sol}
-                        solIndex={solIndex}
-                        normalImages={normalImages}
-                        panopticCategories={panopticCategories}
-                        panoptic={panoptic}
-                        label={label}
-                        dataset={dataset}
-                    />
-                )}
-            </Container>
-        </div>
+            <div>
+                <h3>Inpainter</h3>
+                <Container maxWidth="false" sx={{overflow: 'scroll', overflowY: 'auto', height: '85vh'}}>
+                    {solutions.map((sol, solIndex) => 
+                        <InpaintBlock
+                            solution={sol}
+                            solIndex={solIndex}
+                            normalImages={normalImages}
+                            panopticCategories={panopticCategories}
+                            panoptic={panoptic}
+                            label={label}
+                            dataset={dataset}
+                        />
+                    )}
+                </Container>
+            </div>
         </Paper>
         </Grid>
     );

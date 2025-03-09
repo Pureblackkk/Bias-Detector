@@ -72,7 +72,7 @@ const InpaintBlock = ({
         panoptic,
         normalImages,
         panopticCategories,
-        7,
+        10,
     )
 
     const generateMask = function (e) {

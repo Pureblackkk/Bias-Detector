@@ -15,6 +15,10 @@ import Images from './Images';
 import Inpainter from './Inpainter';
 import PopoverPanel from './Popover';
 import Message from './InpainterBlock/Message'
+import StageButton from './StageButton';
+
+// Slider effect
+import { motion } from "framer-motion";
 
 // API
 import API_URL from '../common/api';
@@ -129,6 +133,7 @@ export default function Dashboard() {
   const [hoveredCaptionKeyword, setHoveredCaptionKeyword] = useState(null)
   const [popoverCollapsed, setPopoverCollapsed] = useState(false)
   const [modalOpen, setModalOpen] = useState(false);
+  const [stageIndex, setStageIndex] = useState(0);
   const modalContent = useRef('');
 
   // Ref for adding the selected image to the keyword select
@@ -203,6 +208,119 @@ export default function Dashboard() {
     setDraggedKeywordObj(null)
   }
 
+  // Define stage componets
+  const ImagesPanel = () => {
+    return (
+      <>
+        {/* Images */}
+        <Images
+          stageIndex={stageIndex}
+          clickedImage={clickedImage}
+          setClickedImage={setClickedImage}
+          prediction={selectedPrediction}
+          hoveredImages={hoveredImages}
+          clickedObj={clickedObj}
+          coordinates={selectedCoordinates}
+          keywordMode={keywordMode}
+          selectedImages={selectedImages}
+          setSelectedImages={setSelectedImages}
+          setPopover={setPopover}
+          keywords={keywords}
+          registerManualKeyword={registerManualKeyword}
+        />
+      </>
+    );
+  };
+
+  const CaptionPanel = () => {
+    return (<>
+      <PopoverPanel
+        stageIndex={stageIndex}
+        popover={popover}
+        setHoveredCaptionKeyword={setHoveredCaptionKeyword}
+        popoverCollapsed={popoverCollapsed}
+        setPopoverCollapsed={setPopoverCollapsed}
+      />
+    </>);
+  };
+
+  const KeywordsPanel = () => {
+    return (<>
+      <Keywords
+        stageIndex={stageIndex}
+        dataset={dataset}
+        popoverCollapsed={popoverCollapsed}
+        label={label}
+        keywords={keywords}
+        setKeywords={setKeywords}
+        setHoveredImages={setHoveredImages}
+        prediction={selectedPrediction}
+        setClickedObj={setClickedObj}
+        mergeComplete={mergeComplete}
+        coordinates={selectedCoordinates}
+        setDraggedKeywordObj={setDraggedKeywordObj}
+        draggedKeywordObj={draggedKeywordObj}
+        registerManualKeyword={registerManualKeyword}
+        keywordMode={keywordMode}
+        popover={popover}
+        clickedImage={clickedImage}
+        hoveredCaptionKeyword={hoveredCaptionKeyword}
+        selectedRevertedImgInfo={selectedRevertedImgInfo}
+      />
+    </>);
+  };
+
+  const SolverPanel = () => {
+    return (<>
+     <Solver
+        stageIndex={stageIndex}
+        predictions={selectedPrediction}
+        setSolutions={setSolutions}
+        registerComplete={registerComplete}
+        draggedKeywordObj={draggedKeywordObj}
+        setKeywords={setKeywords}
+        selectedTrainData={selectedTrainData}
+        handleForward={handleForward}
+      />
+    </>);
+  };
+
+  const InpainterPanel = () => {
+    return (<>
+      <Inpainter
+        stageIndex={stageIndex}
+        dataset={dataset}
+        solutions={solutions}
+        normalImages={selectedTrainData}
+        panoptic={selectedPanoptic}
+        panopticCategories={selectedPanopticCategories}
+        label={label}
+      />
+    </>);
+  };
+
+  const StageMapList = [
+    [ImagesPanel, CaptionPanel, KeywordsPanel],
+    [KeywordsPanel, SolverPanel],
+    [InpainterPanel],
+  ];
+
+  const handleForward = () => {
+    setStageIndex((prev) => Math.min(prev + 1, StageMapList.length - 1));
+  };
+
+  const handleBack = () => {
+    setStageIndex((prev) => Math.max(prev - 1, 0));
+  };
+
+  const shouldHaveForwardButton = (() => {
+    if (stageIndex === StageMapList.length - 1) return false;
+    if (stageIndex ===1 && solutions.length === 0) return false;
+    return true;
+  })();
+
+  const shouldHaveBackButton = stageIndex !== 0;
+
   return isDataLoad ? (
     <div className="App">
       <Box sx={{
@@ -220,9 +338,16 @@ export default function Dashboard() {
           Bias Balancer
         </Typography>
       </Box>
-      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+
+      {/* Motion container */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', overflow: 'hidden !important'}}>
         <Box
-          component="main"
+          component={motion.div}
+          key={stageIndex}
+          initial={{ opacity: 0, x: 50}}
+          animate={{ opacity: 1, x: 0}}
+          exit={{ opacity: 0, x: -50 }}
+          transition={{ type: "spring", stiffness: 120 }}
           sx={{
             backgroundColor: (theme) =>
               theme.palette.mode === 'light'
@@ -230,89 +355,30 @@ export default function Dashboard() {
                 : theme.palette.grey[900],
             flexGrow: 1,
             height: 'calc(100vh - 50px)',
-            overflow: 'auto',
+            overflow: 'hidden !important',
           }}
         >
-          <Box sx={{ display: 'flex', flexDirection: 'row', overflowX: 'auto', width: '100%' }}>
-            <Container sx={{ mt: 1, mb: 1, minWidth: "100vw" }}>
-              <Grid container spacing={1}>
-                {/* Images */}
-                <Images
-                  clickedImage={clickedImage}
-                  setClickedImage={setClickedImage}
-                  prediction={selectedPrediction}
-                  hoveredImages={hoveredImages}
-                  clickedObj={clickedObj}
-                  coordinates={selectedCoordinates}
-                  keywordMode={keywordMode}
-                  selectedImages={selectedImages}
-                  setSelectedImages={setSelectedImages}
-                  setPopover={setPopover}
-                  keywords={keywords}
-                  registerManualKeyword={registerManualKeyword}
-                />
-
-                {/* PopoverPanel */}
-                <PopoverPanel
-                  popover={popover}
-                  setHoveredCaptionKeyword={setHoveredCaptionKeyword}
-                  popoverCollapsed={popoverCollapsed}
-                  setPopoverCollapsed={setPopoverCollapsed}
-                />
-
-                {/* Keywords */}
-                <Keywords
-                  dataset={dataset}
-                  popoverCollapsed={popoverCollapsed}
-                  label={label}
-                  keywords={keywords}
-                  setKeywords={setKeywords}
-                  setHoveredImages={setHoveredImages}
-                  prediction={selectedPrediction}
-                  setClickedObj={setClickedObj}
-                  mergeComplete={mergeComplete}
-                  coordinates={selectedCoordinates}
-                  setDraggedKeywordObj={setDraggedKeywordObj}
-                  draggedKeywordObj={draggedKeywordObj}
-                  registerManualKeyword={registerManualKeyword}
-                  keywordMode={keywordMode}
-                  popover={popover}
-                  clickedImage={clickedImage}
-                  hoveredCaptionKeyword={hoveredCaptionKeyword}
-                  selectedRevertedImgInfo={selectedRevertedImgInfo}
-                />
-
-              </Grid>
-            </Container>
-            <Container sx={{ mt: 1, mb: 1, minWidth: "50vw" }}>
-              <Grid container spacing={1}>
-                {/* Solver */}
-                <Solver
-                  predictions={selectedPrediction}
-                  setSolutions={setSolutions}
-                  registerComplete={registerComplete}
-                  draggedKeywordObj={draggedKeywordObj}
-                  setKeywords={setKeywords}
-                  selectedTrainData={selectedTrainData}
-                />
-              </Grid>
-            </Container>
-            <Container sx={{ mt: 1, mb: 1, minWidth: "100vw" }}>
-              <Grid container spacing={1}>
-                {/* Inpainter */}
-                <Inpainter
-                  dataset={dataset}
-                  solutions={solutions}
-                  normalImages={selectedTrainData}
-                  panoptic={selectedPanoptic}
-                  panopticCategories={selectedPanopticCategories}
-                  label={label}
-                />
+          <Box sx={{ display: 'flex', flexDirection: 'row', overflow: 'hidden', width: '100%', height: '100%' }}>
+            <Container sx={{ mt: 1, mb: 1, minWidth: "100vw"}}>
+              <Grid container spacing={1}  sx={{
+                justifyContent: "center",
+              }} >
+                {
+                  StageMapList?.[stageIndex].map((panelRender) => panelRender())
+                }
               </Grid>
             </Container>
           </Box>
         </Box>
       </Box>
+
+      {/* Set stage button */}
+      {
+        shouldHaveForwardButton && <StageButton direction={'right'} onClick={handleForward}/>
+      }
+      {
+        shouldHaveBackButton && <StageButton direction={'left'} onClick={handleBack}/>
+      }
       <Message modalOpen={modalOpen} modalContent={modalContent}></Message>
     </div >
     // </ThemeProvider>

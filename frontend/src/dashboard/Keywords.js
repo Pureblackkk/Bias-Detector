@@ -60,6 +60,7 @@ const equalKeywords = (keyword1, keyword2) => {
 };
 
 const Keywords = ({
+  stageIndex,
   keywords,
   label,
   setKeywords,
@@ -362,9 +363,13 @@ const Keywords = ({
       });
   }, [keywords, order, orderBy, useLimeKeyword]);
 
-
+  // Define gridwith based on stage
+  const gridWidth = stageIndex == 0 ?
+    (popoverCollapsed ? 5.8 : 4)
+    : 5;
+    
   return (
-    <Grid item lg={popoverCollapsed ? 5.8 : 4}>
+    <Grid item lg={gridWidth}>
       <Paper
         sx={{
           p: 2,

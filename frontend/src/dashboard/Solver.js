@@ -6,9 +6,15 @@ import Rule from './Rule';
 
 
 
-function Solver({ predictions, setSolutions, draggedKeywordObj, registerComplete, setKeywords, selectedTrainData}) {
-
-
+function Solver({
+  predictions,
+  setSolutions,
+  draggedKeywordObj,
+  registerComplete,
+  setKeywords,
+  selectedTrainData,
+  handleForward,
+}) {
   const initialRule = { keywords: [], biasName: "" };
   const [rules, setRules] = useState([initialRule]);
 
@@ -138,18 +144,23 @@ function Solver({ predictions, setSolutions, draggedKeywordObj, registerComplete
         solutions.push(solution);
       }
     })
+
+    // Set global solutions
     setSolutions(solutions);
+
+    // Automatically push forward
+    handleForward();
   }
   
   return (
-    <Grid item xs={12}>
+    <Grid item xs={6.5}>
       <Paper 
         sx={{
           p: 2,
           display: "flex",
           flexDirection: 'column',
-          height: '80vh', // Example max height
-          overflowY: 'auto', // Enables vertical scrolling
+          height: '85vh',
+          overflowY: 'auto',
         }}>
         <div>
           <h3>Bias Solver</h3>
