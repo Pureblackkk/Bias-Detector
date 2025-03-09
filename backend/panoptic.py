@@ -39,7 +39,7 @@ args = []
 
 for base_path in ["../UrbanCars", "../Waterbirds"]:
     image_files = glob(f"{base_path}/{split}/*/*")
-    for index in tqdm(range(batch, len(image_files), total)):
+    for index in tqdm(range(0, len(image_files))):
         image_file = image_files[index]
         new_path = image_file.replace(f"{base_path}/", "")[:-4]
         if os.path.exists(f"{base_folder}/{new_path}/"): continue
