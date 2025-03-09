@@ -86,6 +86,7 @@ export default function Dashboard() {
           coordinates,
           trainData,
           revertedImgInfo,
+          gradcam,
         ] = await Promise.all([
           returnFetchPromise(`${dataset}/keywords_all.json`),
           returnFetchPromise(`${dataset}/keywords_lime.json`),
@@ -95,6 +96,7 @@ export default function Dashboard() {
           returnFetchPromise(`${dataset}/coordinates.json`),
           returnFetchPromise(`${dataset}/file_list.json`),
           returnFetchPromise(`${dataset}/reverted_image.json`),
+          returnFetchPromise(`${dataset}/gradcam.json`),
         ]);
         
         setSelectedPrediction(predictions[label]);
@@ -103,6 +105,7 @@ export default function Dashboard() {
         setSelectedCoordinates(coordinates[label]);
         setSelectedTrainData(trainData['train'][label]);
         setSelectedRevertedImgInfo(revertedImgInfo[label]);
+        setSelectedGradcam(gradcam);
 
         // Set post processing keywords
         setKeywords(parseKeywordsAndLimeKeywords(keywords[label], limeKeywords[label]));
@@ -247,6 +250,7 @@ export default function Dashboard() {
                   setPopover={setPopover}
                   keywords={keywords}
                   registerManualKeyword={registerManualKeyword}
+                  gradcam={selectedGradcam}
                 />
 
                 {/* PopoverPanel */}
