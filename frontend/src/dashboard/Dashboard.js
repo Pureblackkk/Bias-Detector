@@ -188,7 +188,7 @@ export default function Dashboard() {
             setKeywords([...keywords, newKeywordObj])
             setKeywordMode(false)
             setModalOpen(false)
-           modalContent.current = '';
+            modalContent.current = '';
           })
       }
     }

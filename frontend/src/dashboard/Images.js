@@ -252,6 +252,8 @@ const Images = ({
       if (type === "image") {
         if (!allImagesLoaded) return 0;
         if (clickedImage) return clickedImage.image === data.image ? 1 : 0.1;
+        if (!!keywordMode ) return data?.image in selectedImages ? 1.0 : 0.5;
+
         return data.opacity;
       } else if (type === "rect") {
         if (viewToggle === "image") return data.opacity;
@@ -262,7 +264,7 @@ const Images = ({
       }
       return 0;
     },
-    [allImagesLoaded, viewToggle, keywordMode, clickedImage]
+    [allImagesLoaded, viewToggle, keywordMode, clickedImage, selectedImages],
   );
 
   useEffect(() => {
@@ -546,7 +548,11 @@ const Images = ({
                 {
                   <Stack direction='row'>
                       <Tooltip title={'Select Images Done'}>
-                        <Button onClick={() => registerManualKeyword(false)}>
+                        <Button onClick={() => {
+                          registerManualKeyword(
+                            false,
+                          )}
+                        }>
                           < CheckCircleOutlineIcon/>
                         </Button>
                       </Tooltip>
@@ -555,7 +561,10 @@ const Images = ({
                         'Cancel Adding Keyword'
                         : 'Cancel Updating Images to Keyword'
                       }>
-                        <Button onClick={() => registerManualKeyword(true)}>
+                        <Button onClick={() => {
+                          registerManualKeyword(true);
+                          setQuantiles(null);
+                        }}>
                           <CancelIcon sx={{}}/>
                         </Button>
                       </Tooltip>
