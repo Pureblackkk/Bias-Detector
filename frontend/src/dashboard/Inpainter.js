@@ -6,25 +6,31 @@ import InpaintBlock from './InpainterBlock/index';
 const Inpainter = ({dataset, solutions, normalImages, panoptic, panopticCategories, label}) => {
 
     return (
-        <Grid item xs={12}>
-        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column'}}>
-            <div>
-                <h3>Inpainter</h3>
-                <Container maxWidth="false" sx={{overflow: 'scroll', overflowY: 'auto', height: '85vh'}}>
-                    {solutions.map((sol, solIndex) => 
-                        <InpaintBlock
-                            solution={sol}
-                            solIndex={solIndex}
-                            normalImages={normalImages}
-                            panopticCategories={panopticCategories}
-                            panoptic={panoptic}
-                            label={label}
-                            dataset={dataset}
-                        />
-                    )}
-                </Container>
-            </div>
-        </Paper>
+        <Grid item xs={12} sx={{ height: 'auto'}}>
+            <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column'}}>
+                <div>
+                    <h3>Inpainter</h3>
+                    <Container maxWidth="false" sx={{
+                        overflowY: 'auto',
+                        height: '85vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '30px'
+                    }}>
+                        {solutions.map((sol, solIndex) => 
+                            <InpaintBlock
+                                solution={sol}
+                                solIndex={solIndex}
+                                normalImages={normalImages}
+                                panopticCategories={panopticCategories}
+                                panoptic={panoptic}
+                                label={label}
+                                dataset={dataset}
+                            />
+                        )}
+                    </Container>
+                </div>
+            </Paper>
         </Grid>
     );
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
     Paper,
     TextField,
@@ -11,6 +11,7 @@ import {
     Divider,
     Alert,
     Snackbar,
+    IconButton,
 } from '@mui/material';
 import _ from 'lodash';
 import { ImageMask, getMaskPathFromKeywords } from './ImageMask';
@@ -22,6 +23,7 @@ import {
     callInpaintAPI,
     callGenerateMaskAPI,
 } from './api';
+import CloseIcon from '@mui/icons-material/Close';
 
 // Generate query with the given query
 const generateQuery = (solution) => {
@@ -146,20 +148,41 @@ const InpaintBlock = ({
         })
         .then(() => {
             updateModal(false, '');
+            setAlert({
+                content: 'Action recored successfully!',
+                severity: 'success',
+                open: true,
+            });
         });
     }
 
     return (
         <Paper key={solIndex}>
-            <Paper elevation={4} sx={{ p: 2, mb: 2 }}>
-                <Typography sx={{ mb: 1 }} variant="subtitle1" gutterBottom>
-                    Generate <TextField
-                        variant="standard"
-                        value={numImages}
-                        onChange={e => setNumImages(parseInt(e.target.value) || 0)}
-                    /> images {generateQuery(solution)}
-                </Typography>
+            <Paper sx={{ p: 2 }}>
+                <Stack direction='row' sx={{ alignItems: 'center', justifyContent: 'center', position: 'relative'}}>
+                    <Typography sx={{ mb: 1 }} variant="subtitle1" gutterBottom>
+                        Generate <TextField
+                            variant="standard"
+                            value={numImages}
+                            onChange={e => setNumImages(parseInt(e.target.value) || 0)}
+                        /> images {generateQuery(solution)}
+                    </Typography>
 
+                    {/* Close Icon */}
+                    <IconButton
+                        onClick={() => {}}
+                        sx={{
+                            position: 'absolute',
+                            top: -20,
+                            right: 0,
+                        }}
+                    >
+                        <CloseIcon onClick={() => {
+                            // Remove this solution from solution list 
+                        }}/>
+                    </IconButton>
+                </Stack>
+                
                 {/* Block for shortcut */}
                 <Stack direction="row" spacing={3} sx={{ my: 2 }}>
                     <Box key="-1" component="div" sx={{ width: '160px', maxHeight: '100px' }} >
@@ -224,7 +247,7 @@ const InpaintBlock = ({
             />
             <Snackbar
                 open={alert.open}
-                autoHideDuration={1000}
+                autoHideDuration={2000}
                 onClose={() => setAlert({...alert, open: false})}
                 anchorOrigin={{ vertical: "top", horizontal: "center" }}
             >

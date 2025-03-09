@@ -7,6 +7,7 @@ import Rule from './Rule';
 
 
 function Solver({
+  solutions,
   predictions,
   setSolutions,
   draggedKeywordObj,
@@ -17,20 +18,6 @@ function Solver({
 }) {
   const initialRule = { keywords: [], biasName: "" };
   const [rules, setRules] = useState([initialRule]);
-
-  /**
-   * rules: [
-   *  { 
-   *    biasName: "bias1",
-   *    keywords: [
-   *      keyword1: {
-   *          keyword: ["keyword1", "keyword2"],
-   *          images: [["image1"], ["image2"]],
-   *          accuracy: [0.9, 0.8],
-   *      },
-   *    ],
-   * ]
-   */
 
   const addRule = () => {
     const newRule = { keywords: [], biasName: "" }; // Each rule starts with an empty list of components
@@ -127,7 +114,7 @@ function Solver({
 
     })
     const maxCount = Math.max(...Object.values(counter).map((val) => val.length));
-    const solutions = []
+    const newSolutions = []
     const increasedRatio = selectedTrainData.length / predictions.length;
     Object.keys(counter).forEach((key) => {
       const originalList = JSON.parse(key);
@@ -141,12 +128,12 @@ function Solver({
             solution.push(["without", keywordsInEachRule[ruleIdx].slice(0, -1)])
           }
         })
-        solutions.push(solution);
+        newSolutions.push(solution);
       }
     })
 
     // Set global solutions
-    setSolutions(solutions);
+    setSolutions([...solutions, ...newSolutions]);
 
     // Automatically push forward
     handleForward();

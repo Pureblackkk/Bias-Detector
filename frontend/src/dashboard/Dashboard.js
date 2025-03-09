@@ -273,6 +273,7 @@ export default function Dashboard() {
   const SolverPanel = () => {
     return (<>
      <Solver
+        solutions={solutions}
         stageIndex={stageIndex}
         predictions={selectedPrediction}
         setSolutions={setSolutions}
