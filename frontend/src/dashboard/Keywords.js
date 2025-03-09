@@ -265,20 +265,28 @@ const Keywords = ({
     const points = images.map(i => coordinates[i].tsne)
     const centroid = calculateCentroid(points);
     const distances = points.map(point => Math.sqrt(Math.pow(point[0] - centroid[0], 2) + Math.pow(point[1] - centroid[1], 2)));
+    const maxDistance = _.max(distances);
+    const scaledDistance = distances.map((distance) => {
+      if (maxDistance == 0) {
+        return 0;
+      }
+      // Scale the distance by 10 for showing the compatchness
+      return distance / 10;
+    });
+
     return {
-      average: _.mean(distances),
-      min: _.min(distances),
-      max: _.max(distances)
+      average: _.mean(scaledDistance),
+      min: _.min(scaledDistance),
+      max: _.max(scaledDistance),
     };
   };
   
-  const totalCorrect = prediction.reduce((acc, curr) => acc + curr.correct, 0);
-  const overallAccuracy = totalCorrect / prediction.length;
-  const accuracyColor = d3.scaleDiverging([0, overallAccuracy, 1], d3.interpolateRdBu);
+  const accuracyColor = d3.scaleDiverging([1.9, 0.5, -0.9], d3.interpolateRdBu);
 
   const overallCD = distanceFromCentroid(prediction.map(d => d.image));
-  const centroidColor = d3.scaleDiverging([overallCD.min, overallCD.average, overallCD.max], d3.interpolateRdBu);
-  const scoreColor = d3.scaleDiverging([2, 0, -2], d3.interpolateRdBu);
+  const shiftingColor = 1;
+  const centroidColor = d3.scaleDiverging([overallCD.min - shiftingColor, overallCD.average, overallCD.max + shiftingColor], d3.interpolateRdBu);
+  const scoreColor = d3.scaleDiverging([5, 0, -5], d3.interpolateRdBu);
 
   const calculateAccuracy = function (data) {
     const filteredPredictions = prediction.filter(d => data.images.flat().includes(d.image));
@@ -633,7 +641,7 @@ const Keywords = ({
                           ))}
                         </TableCell>
                         {/* Coefficient */}
-                        <TableCell sx={{ backgroundColor: centroidColor(distanceFromCentroid(data.images.flat()).average) }} align="right">
+                        <TableCell sx={{ backgroundColor: scoreColor(avgLimeCoefficient(data) * 3) }} align="right">
                           <Typography>{avgLimeCoefficient(data).toFixed(2)}</Typography>
                         </TableCell>
                         {/* CLIP Score */}
