@@ -70,6 +70,7 @@ export default function Dashboard() {
   const [selectedCoordinates, setSelectedCoordinates] = useState(null);
   const [selectedTrainData, setSelectedTrainData] = useState(null);
   const [selectedRevertedImgInfo, setSelectedRevertedImgInfo] = useState(null);
+  const [selectedGradcam, setSelectedGradcam] = useState(null);
 
   // Define postprocessing data
   const [keywords, setKeywords] = useState(null);
