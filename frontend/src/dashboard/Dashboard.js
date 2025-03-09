@@ -204,17 +204,20 @@ export default function Dashboard() {
   }
 
   return isDataLoad ? (
-    // <ThemeProvider theme={defaultTheme}>
     <div className="App">
       <Box sx={{
-        backgroundColor: "#A8A8A8",
-        justifyContent: "center",
+        backgroundColor: "rgba(0, 28, 76, 0.8)",
+        justifyContent: "space-start",
+        paddingLeft: '30px',
         alignItems: "center",
         display: "flex",
-        height: "50px"
+        height: "50px",
+        color: "white",
+        fontFamily: 'Inter',
+        fontStyle: 'italic',
       }}>
-        <Typography variant="h6" noWrap component="div">
-          Interactive System for Mitigating Multiple Bias in Image Datasets
+        <Typography variant="h5" noWrap component="div">
+          Bias Balancer
         </Typography>
       </Box>
       <Box sx={{ display: 'flex', justifyContent: 'center' }}>

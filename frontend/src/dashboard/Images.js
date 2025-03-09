@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import _, { range, set } from 'lodash';
 import * as d3 from "d3";
-import { PieChart, Pie, Cell } from "recharts";
+import { PieChart, Pie, Cell, Tooltip as ChartToolTip } from "recharts";
 import textures from 'textures';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -537,11 +537,11 @@ const Images = ({
                 <Cell key="cell0" fill="#C9C9C9" />
                 <Cell key="cell1" fill={pattern} />
               </Pie>
-              <Tooltip />
+              <ChartToolTip wrapperStyle={{ transform: 'translate(-60px, 50px)' }}/>
             </PieChart>
           </Box>
 
-          {/* TODO: Show in register manual keyword mode */}
+          {/* Show in register manual keyword mode */}
           {
             keywordMode && (
               <Box ml={'auto'} right={0} sx={{position: 'absolute', }}> 
