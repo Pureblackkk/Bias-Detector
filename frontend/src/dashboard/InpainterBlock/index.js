@@ -12,6 +12,11 @@ import {
     Alert,
     Snackbar,
     IconButton,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
 } from '@mui/material';
 import _ from 'lodash';
 import { ImageMask, getMaskPathFromKeywords } from './ImageMask';
@@ -44,12 +49,14 @@ const InpaintBlock = ({
     panoptic,
     panopticCategories,
     label,
+    deleteSolution,
 }) => {
     const [invert, setInvert] = useState(false);
     const [numImages, setNumImages] = useState(solution[0]);
     const [finished, setFinished] = useState(false);
     const [drawModalOpen, setDrawModalOpen] = useState(false);
     const [alert, setAlert] = useState({severity: 'success', content: '', open: false});
+    const [dialogOpen, setDialogOpen] = useState(false);
     const seemQueryRef = useRef(null);
     const queryRef = useRef(null);
 
@@ -154,7 +161,16 @@ const InpaintBlock = ({
                 open: true,
             });
         });
-    }
+    };
+
+    const handleDiaglogOpen = () => setDialogOpen(true);
+    const handleDialogClose = () => setDialogOpen(false);
+
+    const handleDialogConfirm = () => {
+        // Delete current solution
+        deleteSolution();
+        setDialogOpen(false);
+    };
 
     return (
         <Paper key={solIndex}>
@@ -170,16 +186,14 @@ const InpaintBlock = ({
 
                     {/* Close Icon */}
                     <IconButton
-                        onClick={() => {}}
+                        onClick={handleDiaglogOpen}
                         sx={{
                             position: 'absolute',
                             top: -20,
                             right: 0,
                         }}
                     >
-                        <CloseIcon onClick={() => {
-                            // Remove this solution from solution list 
-                        }}/>
+                        <CloseIcon/>
                     </IconButton>
                 </Stack>
                 
@@ -253,6 +267,29 @@ const InpaintBlock = ({
             >
                 <Alert severity={alert.severity}>{alert.content}</Alert>
             </Snackbar>
+
+            {/* Close Dialog */}
+            <Dialog
+                open={dialogOpen}
+                onClose={handleDialogClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    {"Are you sure you want to delete this solution?"}
+                </DialogTitle>
+                <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                    Once deleted, the keyword corresponding to the solution will not be restored
+                </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDialogClose}>Cancel</Button>
+                    <Button onClick={handleDialogConfirm} autoFocus>
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Paper>
     );
 };

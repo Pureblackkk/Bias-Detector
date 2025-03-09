@@ -208,6 +208,14 @@ export default function Dashboard() {
     setDraggedKeywordObj(null)
   }
 
+  const handleForward = () => {
+    setStageIndex((prev) => Math.min(prev + 1, StageMapList.length - 1));
+  };
+
+  const handleBack = () => {
+    setStageIndex((prev) => Math.max(prev - 1, 0));
+  };
+
   // Define stage componets
   const ImagesPanel = () => {
     return (
@@ -292,10 +300,12 @@ export default function Dashboard() {
         stageIndex={stageIndex}
         dataset={dataset}
         solutions={solutions}
+        setSolutions={setSolutions}
         normalImages={selectedTrainData}
         panoptic={selectedPanoptic}
         panopticCategories={selectedPanopticCategories}
         label={label}
+        handleBack={handleBack}
       />
     </>);
   };
@@ -305,14 +315,6 @@ export default function Dashboard() {
     [KeywordsPanel, SolverPanel],
     [InpainterPanel],
   ];
-
-  const handleForward = () => {
-    setStageIndex((prev) => Math.min(prev + 1, StageMapList.length - 1));
-  };
-
-  const handleBack = () => {
-    setStageIndex((prev) => Math.max(prev - 1, 0));
-  };
 
   const shouldHaveForwardButton = (() => {
     if (stageIndex === StageMapList.length - 1) return false;

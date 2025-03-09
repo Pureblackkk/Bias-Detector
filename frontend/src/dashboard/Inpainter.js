@@ -3,8 +3,26 @@ import { Container, Paper, Grid } from '@mui/material';
 import _ from 'lodash';
 import InpaintBlock from './InpainterBlock/index';
 
-const Inpainter = ({dataset, solutions, normalImages, panoptic, panopticCategories, label}) => {
+const Inpainter = ({
+    dataset,
+    solutions,
+    setSolutions,
+    normalImages,
+    panoptic,
+    panopticCategories,
+    label,
+    handleBack,
+}) => {
+    const deleteSolution = (solIndex) => {
+        const newSolutions = solutions?.filter((_, idx) => idx !== solIndex);
+        setSolutions(newSolutions);
 
+        // If no solution back to previous stage
+        if (newSolutions.length === 0) {
+            handleBack();
+        }
+    }
+    
     return (
         <Grid item xs={12} sx={{ height: 'auto'}}>
             <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column'}}>
@@ -26,6 +44,9 @@ const Inpainter = ({dataset, solutions, normalImages, panoptic, panopticCategori
                                 panoptic={panoptic}
                                 label={label}
                                 dataset={dataset}
+                                deleteSolution={() => {
+                                    deleteSolution(solIndex);
+                                }}
                             />
                         )}
                     </Container>
