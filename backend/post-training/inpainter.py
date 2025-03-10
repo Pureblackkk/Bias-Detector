@@ -1,6 +1,9 @@
 import numpy as np
 from PIL import Image, ImageOps
 from typing import List
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from FLUX_Controlnet_Inpainting.main import inpaint_image
 
 class Inpainer:
