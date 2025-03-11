@@ -72,7 +72,11 @@ black = np.array([0, 0, 0]) # Background color
 red = np.array([255, 0, 0]) # Foreground color
 
 base_folder = "static/generated_masks"  # Mask folder
-os.makedirs(base_folder, exist_ok=True) 
+base_upload_folder = 'static/upload_image'
+base_watermark = 'static/watermark'
+os.makedirs(base_folder, exist_ok=True)
+os.makedirs(base_upload_folder, exist_ok=True)
+os.makedirs(base_watermark, exist_ok=True) 
 
 # ------- API -------
 @app.route('/api/seem', methods=["POST"])
@@ -141,9 +145,34 @@ def manual_mask():
     index = glob(f"{base_folder}/*")
     local_mask_path = f"{base_folder}/{len(index)}_draw.png"
     final_mask.save(local_mask_path)
+
+    # Save upload_image
+    upload_image_path = ''
+    if 'upload_image' in data:
+        upload_image = data['upload_image']
+        _, upload_image_data = upload_image.split("data:image/png;base64,")
+        upload_image_bytes = base64.b64decode(upload_image_data)
+        upload_image = Image.open(BytesIO(upload_image_bytes))
+        index = glob(f"{base_upload_folder}/*")
+        upload_image_path = f"{base_upload_folder}/{len(index)}.png"
+        upload_image.save(upload_image_path)
+
+
+    watermark_path = ''
+    if 'watermark' in data:
+        watermark = data['watermark']
+        _, watermark_data = watermark.split("data:image/png;base64,")
+        watermark_bytes = base64.b64decode(watermark_data)
+        watermark = Image.open(BytesIO(watermark_bytes))
+        index = glob(f"{base_watermark}/*")
+        watermark_path = f"{base_watermark}/{len(index)}.png"
+        watermark.save(watermark_path)
+
     
     data = {
         'mask_paths': local_mask_path,
+        'watermark_path': watermark_path,
+        'upload_path': upload_image_path,
     }
     
     return jsonify(data), 200
