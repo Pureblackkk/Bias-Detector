@@ -127,7 +127,16 @@ export const useWaterMark = () => {
         drawWatermark();
     }, [showWaterMark, watermark, size, rotation, position, watermarkCanvasRef.current]);
 
+    const waterMarkReset = () => {
+        setWatermarkContent('watermark');
+        setSize(50);
+        setRotation(0);
+        setPosition({x: 100, y: 100});
+        setShowWaterMark(false);
+    };
+    
     return {
+        waterMarkReset,
         waterMarkExportImages: exportImages,
         waterMarkUIComponentRender: uiComponentRender,
         showWaterMark,

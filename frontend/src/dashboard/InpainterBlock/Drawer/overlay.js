@@ -145,8 +145,16 @@ export const useOverLay = () => {
             </>
         );
     };
+
+    const overlayReset = () => {
+        setOverlayImage(null);
+        setOverlaySize(1);
+        setOverlayPosition({x: 100, y: 100});
+        setShowOverlay(false);
+    };
     
     return {
+        overlayReset,
         overlayExportImages: exportImages,
         overlayImageUIComponentRender: uiComponentRender,
         showOverlay,

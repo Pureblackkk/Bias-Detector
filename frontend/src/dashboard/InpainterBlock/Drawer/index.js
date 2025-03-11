@@ -33,6 +33,7 @@ const Draw = ({
     const [alert, setAlert] = useState(false);
 
     const {
+        waterMarkReset,
         waterMarkExportImages,
         waterMarkUIComponentRender,
         watermarkCanvasRef,
@@ -40,6 +41,7 @@ const Draw = ({
     } = useWaterMark();
 
     const {
+        overlayReset,
         overlayExportImages,
         overlayImageUIComponentRender,
         overlayCanvasRef,
@@ -124,6 +126,8 @@ const Draw = ({
                 open={modalOpen}
                 onClose={() => {
                     setModalOpen(false);
+                    waterMarkReset();
+                    overlayReset();
                 }}
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
