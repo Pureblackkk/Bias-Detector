@@ -98,12 +98,12 @@ const Keywords = ({
    * On click action
    */
   const onClick = function (e, data) {
-    if (clickedKeyword == data.keyword) {
+    if (clickedKeyword == data.keyword.join('&')) {
       setClickedKeyword("")
       setClickedObj({})
     }
     else {
-      setClickedKeyword(data.keyword)
+      setClickedKeyword(data.keyword.join('&'))
       setClickedObj(data)
     }
   }
@@ -164,7 +164,7 @@ const Keywords = ({
     const keyword = data.keyword;
     if (clickedImage) { // When image is clicked in explorer
       if (keyword == hoveredCaptionKeyword) return "#d0d0d0"
-      if (data.images.flat().includes(clickedImage.image)) return "#f0f0f0"
+      if (data.images.flat().includes(clickedImage.image)) return "#d0d0d0"
       return "white"
     }
     if (!clickedKeyword) return focusKeyword == keyword ? "#f0f0f0" : "white" // when keyword is hovered here
@@ -193,6 +193,8 @@ const Keywords = ({
 
     // Update the state with the new keywords array
     setKeywords(updatedKeywords);
+    setClickedKeyword(updatedKeywords[index1].keyword.join('&'));
+    setClickedObj(updatedKeywords[index1]);
   }
 
   /**
@@ -261,7 +263,16 @@ const Keywords = ({
         return img_list.concat(images);
       })
       cloneKeywords[currentIndex] = currentKeywords;
+
+      // Update keywords
       setKeywords(cloneKeywords);
+
+      // Update clickobject
+      setClickedObj(cloneKeywords[currentIndex]);
+
+      // Update hover images
+      const newHoveredImages = cloneKeywords[currentIndex].images.flat();
+      setHoveredImages(newHoveredImages);
     }
 
     return addingFunction;
@@ -285,6 +296,13 @@ const Keywords = ({
 
       cloneKeywords[currentIndex] = currentKeywords;
       setKeywords(cloneKeywords);
+
+      // Update clickobject
+      setClickedObj(cloneKeywords[currentIndex]);
+
+      // Update hover images
+      const newHoveredImages = cloneKeywords[currentIndex].images.flat();
+      setHoveredImages(newHoveredImages);
     }
 
     return deletingFunction;
@@ -519,6 +537,8 @@ const Keywords = ({
                               <AddBoxIcon 
                                 sx={{position: 'relative', ml: -3}}
                                 onClick={(e) => {
+                                  setClickedKeyword(data.keyword.join('&'));
+                                  setClickedObj(data);
                                   e.preventDefault();
                                   e.stopPropagation();
                                   registerManualKeyword(
@@ -531,6 +551,8 @@ const Keywords = ({
                               <IndeterminateCheckBoxIcon 
                                 sx={{position: 'relative', ml: -3}}
                                 onClick={(e) => {
+                                  setClickedKeyword(data.keyword.join('&'));
+                                  setClickedObj(data);
                                   e.preventDefault();
                                   e.stopPropagation();
                                   registerManualKeyword(
@@ -550,7 +572,7 @@ const Keywords = ({
                                       variant="standard"
                                       value={k}
                                       onChange={(e) => onKeywordChange(e, index, index2)}
-                                      onClick={(e) => e.stopPropagation()}
+                                      onClick={(e) => onClick(e, data)}
                                       sx={{ width: "100%" }}
                                     />
                                     {
@@ -678,7 +700,7 @@ const Keywords = ({
                                 variant="standard"
                                 value={k}
                                 onChange={(e) => onKeywordChange(e, index, index2)}
-                                onClick={(e) => e.stopPropagation()}
+                                onClick={(e) => onClick(e, data)}
                                 sx={{ width: "100%" }}
                               />
                               {

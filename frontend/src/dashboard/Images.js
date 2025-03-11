@@ -206,12 +206,14 @@ const Images = ({
       ...pred,
       opacity: hoveredImages ? (hoveredImages.includes(pred.image) ? 1 : 0) : 1,
     }));
-    if (clickedObj.keyword) {
+
+    // KeywordMode need to show all the images
+    if (!keywordMode && clickedObj.keyword) {
       const imagesSelected = clickedObj.images.flat();
       data = data.filter(pred => imagesSelected.includes(pred.image));
     }
     return data;
-  }, [prediction, hoveredImages, clickedObj]);
+  }, [prediction, hoveredImages, clickedObj, keywordMode, keywords]);
 
   // Build lookup for quick mouse detection (unchanged)
   const gridDict = useMemo(() => {
@@ -250,9 +252,23 @@ const Images = ({
   const calculateOpacity = useCallback(
     (data, type) => {
       if (type === "image") {
+        // Speical case for keywordMode
+        if (!!keywordMode) {
+          if (data?.image in selectedImages) return 1.0;
+
+          let clickedObjHasImages = false;
+          clickedObj?.images?.forEach((imgList) => {
+            if (clickedObjHasImages) return;
+            if (imgList.includes(data?.image)) {
+              clickedObjHasImages = true;
+            }
+          });
+          if (clickedObjHasImages) return 1.0;
+          return 0.3;
+        }
+
         if (!allImagesLoaded) return 0;
         if (clickedImage) return clickedImage.image === data.image ? 1 : 0.1;
-        if (!!keywordMode ) return data?.image in selectedImages ? 1.0 : 0.5;
 
         return data.opacity;
       } else if (type === "rect") {
@@ -264,7 +280,7 @@ const Images = ({
       }
       return 0;
     },
-    [allImagesLoaded, viewToggle, keywordMode, clickedImage, selectedImages],
+    [allImagesLoaded, viewToggle, keywordMode, clickedImage, selectedImages, keywords, hoveredImages],
   );
 
   useEffect(() => {
@@ -371,7 +387,7 @@ const Images = ({
     } else {
       zoomGroup.selectAll("line.quantile-line").remove();
     }
-  }, [fullData, coordinates, scale, imageSize, keywordMode, viewToggle, quantiles, selectedImages, calculateOpacity, calculateColor]);
+  }, [fullData, coordinates, scale, imageSize, keywordMode, keywords, viewToggle, quantiles, selectedImages, calculateOpacity, calculateColor]);
 
   // ─── D3 ZOOM BEHAVIOR ───────────────────────────────────────────────────────
   useEffect(() => {
