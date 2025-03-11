@@ -196,6 +196,9 @@ const InpaintBlock = ({
                         <CloseIcon/>
                     </IconButton>
                 </Stack>
+                <Typography sx={{ mb: 1 }} variant="caption" gutterBottom>
+                    *Note: The number is calculated automatically to ensure best optimization.
+                </Typography>
                 
                 {/* Block for shortcut */}
                 <Stack direction="row" spacing={3} sx={{ my: 2 }}>

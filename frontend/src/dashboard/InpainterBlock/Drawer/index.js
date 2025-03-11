@@ -11,6 +11,8 @@ import {
     Snackbar,
     Alert,
 } from "@mui/material";
+import { useWaterMark } from "./watermark";
+import { useOverLay } from './overlay';
 import { callDrawMaskAPI } from "../api";
 import API_URL from '../../../common/api';
 
@@ -30,6 +32,20 @@ const Draw = ({
     const [currentShowImageIndex, setCurrentShowImageIndex] = useState(0);
     const [alert, setAlert] = useState(false);
 
+    const {
+        waterMarkExportImages,
+        waterMarkUIComponentRender,
+        watermarkCanvasRef,
+        showWaterMark,
+    } = useWaterMark();
+
+    const {
+        overlayExportImages,
+        overlayImageUIComponentRender,
+        overlayCanvasRef,
+        showOverlay,
+    } = useOverLay();
+
     // Register new mask 
     const handleRegisterClick = async () => {
         if (maskName === '') {
@@ -43,12 +59,19 @@ const Draw = ({
         );
 
         const image = await canvasRef.current.exportImage('png');
-        callDrawMaskAPI(image)
-        .then((maskPath) => {
+        const watermark = await waterMarkExportImages();
+        const uploadImage = await overlayExportImages();
+
+        callDrawMaskAPI(
+            image,
+            uploadImage,
+            watermark,
+        )
+        .then((all_path) => {
             // Update panoptic
             updatePanoptic(
                 undefined,
-                maskPath,
+                all_path,
                 maskName,
             );
 
@@ -65,7 +88,6 @@ const Draw = ({
             setModalOpen(false);
         })
     };
-
 
     const handleEraserClick = () => {
         setEraseMode(true);
@@ -112,10 +134,12 @@ const Draw = ({
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
                     width: 600, // Adjusted for better fit
+                    height: '100vh',
                     bgcolor: 'background.paper',
                     border: '2px solid #000',
                     boxShadow: 24,
                     p: 4,
+                    overflow: 'scroll',
                 }}>
                     <Typography id="modal-modal-title" variant="h6" component="h2">
                         Draw a new Mask
@@ -127,7 +151,7 @@ const Draw = ({
                         value={maskName}
                         onChange={(e) => { setMaskName(e.target.value) }}
                     />
-                    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <Stack direction='column' spacing={1}>
                             {/* First row */}
                             <Stack direction='row' spacing={2}>
@@ -182,10 +206,15 @@ const Draw = ({
                             />
                         </div>}
 
+                        {/* Overlay Panel */}
+                        { overlayImageUIComponentRender() }
+
+                        {/* Watermark Panel */}
+                        { waterMarkUIComponentRender() }
+
                         {/* Preview image and mask */}
-                        {/* TODO: change the background image */}
                         <Stack direction='row'>
-                            <div style={{ width: 512, height: 512 }}>
+                            <div style={{ width: 512, height: 512, position: 'relative' }}>
                                 <ReactSketchCanvas
                                     width={512}
                                     height={512}
@@ -195,6 +224,38 @@ const Draw = ({
                                     strokeColor="black"
                                     backgroundImage={`${API_URL}/api/static/` + selectedImgURL[currentShowImageIndex]}
                                 />
+
+                                {/* Overlay preview */}
+                                {
+                                    showOverlay && 
+                                    <canvas
+                                        ref={overlayCanvasRef}
+                                        width="512"
+                                        height="512"
+                                        style={{
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0,
+                                        pointerEvents: "none",
+                                        zIndex: 2,
+                                    }}/>
+                                }
+
+                                {/* Watermark preview */}
+                                {
+                                    showWaterMark && 
+                                    <canvas
+                                        ref={watermarkCanvasRef}
+                                        width="512"
+                                        height="512"
+                                        style={{
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0,
+                                        pointerEvents: "none",
+                                        zIndex: 2,
+                                    }}/>
+                                }
                             </div>
                         </Stack>
                         
