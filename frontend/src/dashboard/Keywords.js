@@ -780,6 +780,7 @@ const Keywords = ({
                                 label={label}
                                 selectedRevertedImgInfo={selectedRevertedImgInfo}
                                 data={data}
+                                popoverCollapsed={popoverCollapsed}
                               />
                             </Box>
                           }

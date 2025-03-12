@@ -74,6 +74,7 @@ const RevertedImage = ({
     label,
     data,
     selectedRevertedImgInfo,
+    popoverCollapsed,
 }) => {
     const adjustedCachedKeywords = data?.cachedKeyword?.filter((_, index) => {
         if(data.coefficient[index] === undefined) {
@@ -89,7 +90,7 @@ const RevertedImage = ({
     ), [data]);
 
     return (
-        <Paper sx={{width: '300px', paddingLeft: '10px'}} elevation={24}>
+        <Paper sx={{width: popoverCollapsed ? '450px' : '300px', paddingLeft: '10px'}} elevation={24}>
             {/* Image List */}
             <Box overflow='auto'>
                 {
