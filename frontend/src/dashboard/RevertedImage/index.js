@@ -72,58 +72,25 @@ const getRevertedImagePath = (
 
 const RevertedImage = ({
     label,
-    limeKeywords,
+    data,
     selectedRevertedImgInfo,
+    popoverCollapsed,
 }) => {
-    const [alignment, setAlignment] = useState([]);
-    const keywords_text = limeKeywords.map((data) => data.keyword[0])
-    const keywords_class = limeKeywords.map((data) => data.class[0])
-
-    const handleChange = (e, newAlignment) => {
-        const currentSet = new Set(alignment);
-        if (currentSet.has(newAlignment)) {
-            currentSet.delete(newAlignment)
-        } else {
-            currentSet.add(newAlignment)
+    const adjustedCachedKeywords = data?.cachedKeyword?.filter((_, index) => {
+        if(data.coefficient[index] === undefined) {
+            return false;
         }
-        setAlignment(Array.from(currentSet));
-    };
+        return true;
+    });
 
     const revertedImgPath = useMemo(() => getRevertedImagePath(
         selectedRevertedImgInfo,
-        alignment,
+        adjustedCachedKeywords,
         label,
-    ), [alignment]);
+    ), [data]);
 
     return (
-        <Paper sx={{width: '100%', marginTop: '20px'}} elevation={24}>
-            {/* Keyword List */}
-            <Box component="div" sx={{ width: '100%', maxHeight: '300px', overflow: 'auto' }}>
-                <ToggleButtonGroup
-                    color="primary"
-                    exclusive
-                    aria-label="Platform"
-                    value={alignment}
-                    onChange={handleChange}
-                >
-                    {
-                        keywords_text.map((keyword, idx) => (
-                            <ToggleButton
-                                value={keyword}
-                                sx={{ 
-                                    textTransform: 'none',
-                                    borderColor: generateColor(keywords_class[idx], keywords_class.length),
-                                    borderWidth: '2px'
-                                }}
-                                key={keyword}
-                            >
-                                {keyword}
-                            </ToggleButton>
-                        ))
-                    }
-                </ToggleButtonGroup>
-            </Box>
-
+        <Paper sx={{width: popoverCollapsed ? '450px' : '300px', paddingLeft: '10px'}} elevation={24}>
             {/* Image List */}
             <Box overflow='auto'>
                 {

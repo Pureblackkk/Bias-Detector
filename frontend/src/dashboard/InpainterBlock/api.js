@@ -77,20 +77,32 @@ const callInpaintAPI = (data) => {
  * Call API /api/manual_mask
  * Save the mask which is manually generated
  */
-const callDrawMaskAPI = (image) => {
+const callDrawMaskAPI = (
+    image,
+    uploadImage,
+    watermark,
+) => {
     return fetch(`${API_URL}/api/manual_mask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         mode: "cors",
-        body: pako.deflate(JSON.stringify({ image: image }), { to: 'string' }),
+        body: pako.deflate(JSON.stringify({
+            image,
+            upload_image: uploadImage,
+            watermark,
+        }), { to: 'string' }),
     })
     .then(response => response.json())
     .then(data => {
         if ('user_id' in data) {
             setUserIdInLocalStorage(data['user_id'])
         }
-        // TODO: Return mask path
-        return data['mask_paths']
+        
+        return {
+            mask_path: data['mask_paths'],
+            upload_path: data['upload_path'],
+            watermark_path: data['watermark_path'],
+        }
     })
     .catch(error => console.error(error))
 };

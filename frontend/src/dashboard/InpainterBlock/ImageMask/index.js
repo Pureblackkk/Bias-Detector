@@ -8,14 +8,30 @@ const getMaskPathFromKeywords = (
     if (selectedKeywords.size === 0) return null;
 
     const maskPaths = [];
-    
+    const upLoadImagePaths = [];
+    const waterMarkPaths = [];
+
     Array.from(selectedKeywords).forEach((keyword) => {
         if(keyword in keywordsPathPair) {
-            maskPaths.push(keywordsPathPair[keyword]);
+            const path = keywordsPathPair[keyword];
+
+            if (typeof path === "object") {
+                const {
+                    mask_path,
+                    upload_path,
+                    watermark_path,
+                } = path;
+
+                !!mask_path && maskPaths.push(mask_path);
+                !!upload_path && upLoadImagePaths.push(upload_path);
+                !!watermark_path && waterMarkPaths.push(watermark_path);
+            } else {
+                maskPaths.push(path);
+            }
         }
     });
 
-    return maskPaths;
+    return [...maskPaths, ...upLoadImagePaths, ...waterMarkPaths];
 };
 
 const ImageMask = ({

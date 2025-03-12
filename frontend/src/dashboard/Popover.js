@@ -79,13 +79,13 @@ export default function PopoverPanel({popover, setHoveredCaptionKeyword, popover
                 >
                   Caption
                 </span>{" "}
-                &nbsp;| &nbsp;
+                {/* &nbsp;| &nbsp;
                 <span
                   style={{ color: panel === 2 ? "black" : "gray", cursor: "pointer" }}
                   onClick={() => setPanel(2)}
                 >
                   Keywords
-                </span>
+                </span> */}
               </Typography>
               {panel === 1 ? (
                 <>

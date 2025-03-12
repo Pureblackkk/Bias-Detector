@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useState } from 'react';
 import {
   Grid,
@@ -16,6 +16,7 @@ import {
   TableSortLabel,
   Tooltip,
   Box,
+  IconButton,
 } from '@mui/material';
 import _ from 'lodash';
 import * as d3 from "d3";
@@ -24,6 +25,7 @@ import LinkOffIcon from '@mui/icons-material/LinkOff';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 
 /**
  * Calculate compachness
@@ -59,7 +61,18 @@ const equalKeywords = (keyword1, keyword2) => {
   return keyword1.length === keyword2.length && keyword1.every((val, index) => val === keyword2[index]);
 };
 
+/**
+ * Find if two keyword list is equal
+ */
+const equalKeywordList = (list1, list2) => {
+  const keyword1 = list1?.sort()?.join('&');
+  const keyword2 = list2?.sort()?.join('&');
+
+  return keyword1 === keyword2;
+}
+
 const Keywords = ({
+  stageIndex,
   keywords,
   label,
   setKeywords,
@@ -77,25 +90,22 @@ const Keywords = ({
   keywordMode,
   selectedRevertedImgInfo,
 }) => {
-  const [focusKeyword, setFocusKeyword] = useState("")
-  const [clickedKeyword, setClickedKeyword] = useState("")
+  const [focusKeyword, setFocusKeyword] = useState([''])
+  const [clickedKeyword, setClickedKeyword] = useState([''])
   const [order, setOrder] = useState('desc');
   const [orderBy, setOrderBy] = useState('score');
   const [useLimeKeyword, setUseLimeKeyword] = useState(false);
-  const [fixedLimeKeyword, setFixedLimeKeyword] = useState(undefined);
   const [hoveredData, setHoveredData] = useState(undefined);
-
-  useEffect(() => {
-    const limeKeyword = keywords?.filter((data) => data?.coefficient?.[0] !== undefined)
-    setFixedLimeKeyword(limeKeyword);
-  }, []);
-
+  const [addingButtonStyle, setAddingButtonStyle] = useState(undefined);
+  const [revertedImagePanel, setRevertedImagePanel] = useState(false);
+  const hoverAddingButtonTarget = useRef(undefined);
+  
   /**
    * On click action
    */
   const onClick = function (e, data) {
-    if (clickedKeyword == data.keyword) {
-      setClickedKeyword("")
+    if (equalKeywordList(clickedKeyword, data.keyword)) {
+      setClickedKeyword([''])
       setClickedObj({})
     }
     else {
@@ -113,7 +123,32 @@ const Keywords = ({
     setFocusKeyword(data.keyword)
     
     // Show the adding icon
-    setHoveredData(data)
+    const currentTarget = e.currentTarget;
+    hoverAddingButtonTarget.current = currentTarget;
+
+    const rect = currentTarget.getBoundingClientRect();
+    setAddingButtonStyle({
+      position: "fixed",
+      left: `${rect.left + window.scrollX}px`,
+      top: `${rect.top + window.scrollY}px`,
+      zIndex: 1000,
+    });
+    setHoveredData(data);
+  }
+
+  /**
+   * On keyword panel scroll
+   */
+  const onKeyPanelMove = () => {
+    if (!hoverAddingButtonTarget?.current) return;
+    const rect = hoverAddingButtonTarget.current?.getBoundingClientRect();
+
+    setAddingButtonStyle({
+      position: "fixed",
+      left: `${rect.left + window.scrollX}px`,
+      top: `${rect.top + window.scrollY}px`,
+      zIndex: 1000,
+    }); 
   }
 
   /**
@@ -121,10 +156,11 @@ const Keywords = ({
    */
   const onMouseOut = function (e) {
     setHoveredImages(null)
-    setFocusKeyword("")
+    setFocusKeyword([''])
 
     // Disable the adding icon
     setHoveredData(undefined);
+    hoverAddingButtonTarget.current = undefined;
   }
 
   /**
@@ -132,13 +168,15 @@ const Keywords = ({
    */
   const focus = function (data) {
     const keyword = data.keyword;
+
     if (clickedImage) { // When image is clicked in explorer
       if (keyword == hoveredCaptionKeyword) return "#d0d0d0"
-      if (data.images.flat().includes(clickedImage.image)) return "#f0f0f0"
+      if (data.images.flat().includes(clickedImage.image)) return "#d0d0d0"
       return "white"
     }
-    if (!clickedKeyword) return focusKeyword == keyword ? "#f0f0f0" : "white" // when keyword is hovered here
-    return clickedKeyword == keyword ? "#d0d0d0" : "white" // when keyword is clicked here
+
+    if (!clickedKeyword) return equalKeywordList(focusKeyword, keyword) ? "#f0f0f0" : "white" // when keyword is hovered here
+    return equalKeywordList(clickedKeyword, keyword) ? "#d0d0d0" : "white" // when keyword is clicked here
   }
 
   /**
@@ -163,6 +201,8 @@ const Keywords = ({
 
     // Update the state with the new keywords array
     setKeywords(updatedKeywords);
+    setClickedKeyword(updatedKeywords[index1].keyword);
+    setClickedObj(updatedKeywords[index1]);
   }
 
   /**
@@ -184,6 +224,7 @@ const Keywords = ({
 
     const newKeyword = {
       keyword: checkedKeywords.map(keyword => keyword.keyword).flat(1),
+      cachedKeyword: checkedKeywords.map(keyword => keyword.cachedKeyword).flat(1),
       score: checkedKeywords.map(keyword => keyword.score).flat(1),
       accuracy: checkedKeywords.map(keyword => keyword.accuracy).flat(1),
       images: checkedKeywords.map(keyword => keyword.images).flat(1),
@@ -231,7 +272,16 @@ const Keywords = ({
         return img_list.concat(images);
       })
       cloneKeywords[currentIndex] = currentKeywords;
+
+      // Update keywords
       setKeywords(cloneKeywords);
+
+      // Update clickobject
+      setClickedObj(cloneKeywords[currentIndex]);
+
+      // Update hover images
+      const newHoveredImages = cloneKeywords[currentIndex].images.flat();
+      setHoveredImages(newHoveredImages);
     }
 
     return addingFunction;
@@ -255,6 +305,13 @@ const Keywords = ({
 
       cloneKeywords[currentIndex] = currentKeywords;
       setKeywords(cloneKeywords);
+
+      // Update clickobject
+      setClickedObj(cloneKeywords[currentIndex]);
+
+      // Update hover images
+      const newHoveredImages = cloneKeywords[currentIndex].images.flat();
+      setHoveredImages(newHoveredImages);
     }
 
     return deletingFunction;
@@ -265,20 +322,28 @@ const Keywords = ({
     const points = images.map(i => coordinates[i].tsne)
     const centroid = calculateCentroid(points);
     const distances = points.map(point => Math.sqrt(Math.pow(point[0] - centroid[0], 2) + Math.pow(point[1] - centroid[1], 2)));
+    const maxDistance = _.max(distances);
+    const scaledDistance = distances.map((distance) => {
+      if (maxDistance == 0) {
+        return 0;
+      }
+      // Scale the distance by 10 for showing the compatchness
+      return distance / 10;
+    });
+
     return {
-      average: _.mean(distances),
-      min: _.min(distances),
-      max: _.max(distances)
+      average: _.mean(scaledDistance),
+      min: _.min(scaledDistance),
+      max: _.max(scaledDistance),
     };
   };
   
-  const totalCorrect = prediction.reduce((acc, curr) => acc + curr.correct, 0);
-  const overallAccuracy = totalCorrect / prediction.length;
-  const accuracyColor = d3.scaleDiverging([0, overallAccuracy, 1], d3.interpolateRdBu);
+  const accuracyColor = d3.scaleDiverging([1.9, 0.5, -0.9], d3.interpolateRdBu);
 
   const overallCD = distanceFromCentroid(prediction.map(d => d.image));
-  const centroidColor = d3.scaleDiverging([overallCD.min, overallCD.average, overallCD.max], d3.interpolateRdBu);
-  const scoreColor = d3.scaleDiverging([2, 0, -2], d3.interpolateRdBu);
+  const shiftingColor = 1;
+  const centroidColor = d3.scaleDiverging([overallCD.min - shiftingColor, overallCD.average, overallCD.max + shiftingColor], d3.interpolateRdBu);
+  const scoreColor = d3.scaleDiverging([5, 0, -5], d3.interpolateRdBu);
 
   const calculateAccuracy = function (data) {
     const filteredPredictions = prediction.filter(d => data.images.flat().includes(d.image));
@@ -325,17 +390,18 @@ const Keywords = ({
       });
   }, [keywords, order, orderBy, useLimeKeyword]);
 
-
+  // Define gridwith based on stage
+  const gridWidth = stageIndex == 0 ?
+    (popoverCollapsed ? 5.8 : 4)
+    : 5;
+    
   return (
-    <Grid item lg={popoverCollapsed ? 5.8 : 4}>
+    <Grid item lg={gridWidth}>
       <Paper
         sx={{
           p: 2,
           display: "flex",
           flexDirection: 'column',
-          maxHeight: '85vh', // Example max height
-          overflowY: !!keywordMode ? 'hidden' : 'auto',
-          overflowX: !!keywordMode ? 'hidden' : 'auto',
           borderRadius: "12px",
           position: 'relative',
         }}
@@ -361,13 +427,16 @@ const Keywords = ({
 
         {/* Switch button for lime */}
         <Stack direction="row" spacing={1} sx={{ w: '100%', mb: 1, alignItems: 'center', justifyContent: "center"}}>
-          <Typography>ALL Keywords</Typography>
+          <Typography>All Keywords</Typography>
           <Switch onChange={(e) => {
+            // TODO: Clean the selected action
+            setClickedKeyword(['']);
+            setClickedObj({});
+
+            onMouseOut();
             setUseLimeKeyword(e.target.checked);
             if (e.target.checked) {
               setOrderBy('coefficient');
-              // Cancel adding the keyword
-              registerManualKeyword(true);
             } else {
               setOrderBy('score');
             }
@@ -376,15 +445,23 @@ const Keywords = ({
         </Stack>
 
         {/* Table body */}
-        <Paper sx={{ my: 1, }}>
+        <Paper
+          sx={{
+            my: 1,
+            maxHeight: '73vh', 
+            overflowY: 'scroll',
+            overflowX: 'visible'
+          }}
+          onScroll={onKeyPanelMove}
+        >
           {
             !useLimeKeyword ? (
               // All keywords
               <Table aria-label="customized table">
                 {/* Fixed Header */}
-                <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#A8A8A8", zIndex: 2 }}>
+                <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "rgb(212, 212, 212)", zIndex: 2 }}>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 'bold' }}>
+                    <TableCell sx={{ fontWeight: 'bold' }} align='center'>
                       <Button>
                         {
                           <Tooltip title={'Add Keyword'}>
@@ -393,37 +470,45 @@ const Keywords = ({
                         }
                       </Button>
                       <TableSortLabel
+                        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
                         active={orderBy === 'keyword'}
                         direction={orderBy === 'keyword' ? order : 'asc'}
                         onClick={() => handleSortRequest('keyword')}
+                        hideSortIcon
                       >
                         Keywords
                       </TableSortLabel>
     
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }} align="right">
+                    <TableCell sx={{ fontWeight: 'bold' }} align="center">
                       <TableSortLabel
+                        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
                         active={orderBy === 'score'}
                         direction={orderBy === 'score' ? order : 'asc'}
                         onClick={() => handleSortRequest('score')}
+                        hideSortIcon
                       >
                         CLIP Score
                       </TableSortLabel>
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }} align="right">
+                    <TableCell sx={{ fontWeight: 'bold'}} align="center">
                       <TableSortLabel
+                        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
                         active={orderBy === 'accuracy'}
                         direction={orderBy === 'accuracy' ? order : 'asc'}
                         onClick={() => handleSortRequest('accuracy')}
+                        hideSortIcon
                       >
                         Accuracy
                       </TableSortLabel>
                     </TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }} align="right">
+                    <TableCell sx={{ fontWeight: 'bold'}} align="center">
                       <TableSortLabel
+                          sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
                           active={orderBy === 'compactness'}
                           direction={orderBy === 'compactness' ? order : 'asc'}
                           onClick={() => handleSortRequest('compactness')}
+                          hideSortIcon
                       >
                         Compactness
                       </TableSortLabel>
@@ -447,81 +532,86 @@ const Keywords = ({
                       onDrop={(e) => onDrop(e, data, index)}
                       onClick={(e) => onClick(e, data)}
                       sx={{
-                        // '&:last-child td, &:last-child th': { border: 0 },
                         cursor: "pointer",
                         backgroundColor: focus(data),
-                        // border: 1,
                         borderColor: "gray",
                       }}
                     >
                       {/* Keyword */}
                       <TableCell component="th" scope="row" sx={{padding: '10px 0px 10px 10px'}}>
-                      <Stack direction='row' alignItems='center'>
-                        { equalKeywords(data?.keyword, hoveredData?.keyword) && 
-                          <Stack direction='column'>
-                            <AddBoxIcon 
-                              sx={{position: 'relative', ml: -3}}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                registerManualKeyword(
-                                  false,
-                                  'Adding',
-                                  onAddingImageToKeyword(index),
-                                )
-                              }}
-                            />
-                            <IndeterminateCheckBoxIcon 
-                              sx={{position: 'relative', ml: -3}}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                registerManualKeyword(
-                                  false,
-                                  'Deleting',
-                                  onDeletingImageToKeyword(index),
-                                )
-                              }}
-                            />
-                          </Stack>
-                        }
-                        <Stack direction='column'>
-                          {data.keyword.map((k, index2) => (
-                                <Stack direction='row' sx={{alignItems: 'center', justifyContent: 'space-between'}}>
-                                  <TextField
-                                    key={index2}
-                                    variant="standard"
-                                    value={k}
-                                    onChange={(e) => onKeywordChange(e, index, index2)}
-                                    onClick={(e) => e.stopPropagation()}
-                                    sx={{ width: "100%" }}
-                                  />
-                                  {
-                                    (index2 > 0) && <LinkOffIcon
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        onDecoupling(data, index2, index);
-                                      }}
-                                      sx={{fontSize: '15px', cursor: 'pointer'}}
-                                    />
-                                  }
-                                </Stack>
-                            ))
+                        <Stack
+                          direction='row'
+                          alignItems='center'
+                        >
+                          { equalKeywords(data?.keyword, hoveredData?.keyword) && 
+                            <Stack direction='column' sx={addingButtonStyle ?? undefined}>
+                              <AddBoxIcon 
+                                sx={{position: 'relative', ml: -3}}
+                                onClick={(e) => {
+                                  setClickedKeyword(data.keyword);
+                                  setClickedObj(data);
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  registerManualKeyword(
+                                    false,
+                                    'Adding',
+                                    onAddingImageToKeyword(index),
+                                  )
+                                }}
+                              />
+                              <IndeterminateCheckBoxIcon 
+                                sx={{position: 'relative', ml: -3}}
+                                onClick={(e) => {
+                                  setClickedKeyword(data.keyword.sort());
+                                  setClickedObj(data);
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  registerManualKeyword(
+                                    false,
+                                    'Deleting',
+                                    onDeletingImageToKeyword(index),
+                                  )
+                                }}
+                              />
+                            </Stack>
                           }
+                          <Stack direction='column'>
+                            {data.keyword.map((k, index2) => (
+                                  <Stack direction='row' sx={{alignItems: 'center', justifyContent: 'space-between'}}>
+                                    <TextField
+                                      key={index2}
+                                      variant="standard"
+                                      value={k}
+                                      onChange={(e) => onKeywordChange(e, index, index2)}
+                                      onClick={(e) => onClick(e, data)}
+                                      sx={{ width: "100%" }}
+                                    />
+                                    {
+                                      (index2 > 0) && <LinkOffIcon
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          onDecoupling(data, index2, index);
+                                        }}
+                                        sx={{fontSize: '15px', cursor: 'pointer'}}
+                                      />
+                                    }
+                                  </Stack>
+                              ))
+                            }
+                          </Stack>
                         </Stack>
-                      </Stack>
                       </TableCell>
                       {/* Score */}
-                      <TableCell sx={{ backgroundColor: scoreColor(weightedSumScore(data)) }} align="right">
+                      <TableCell sx={{ backgroundColor: scoreColor(weightedSumScore(data))}} align="center">
                         <Typography>{weightedSumScore(data).toFixed(2)}</Typography>
                       </TableCell>
                       {/* Accuracy */}
-                      <TableCell sx={{ backgroundColor: accuracyColor(calculateAccuracy(data)) }} align="right">
+                      <TableCell sx={{ backgroundColor: accuracyColor(calculateAccuracy(data))}} align="center">
                         <Typography>{calculateAccuracy(data).toFixed(2)}</Typography>
                       </TableCell>
                       {/* Compactness */}
-                      <TableCell sx={{ backgroundColor: centroidColor(distanceFromCentroid(data.images.flat()).average) }} align="right">
+                      <TableCell sx={{ backgroundColor: centroidColor(distanceFromCentroid(data.images.flat()).average) }} align="center">
                         <Typography>{distanceFromCentroid(data.images.flat()).average.toFixed(2)}</Typography>
                       </TableCell>
                     </TableRow>
@@ -533,49 +623,54 @@ const Keywords = ({
               <>
                 <Table aria-label="customized table">
                   {/* Fixed Header */}
-                  <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#A8A8A8", zIndex: 2 }}>
+                  <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "rgb(212, 212, 212)", zIndex: 2 }}>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>
                         <TableSortLabel
                           active={orderBy === 'keyword'}
                           direction={orderBy === 'keyword' ? order : 'asc'}
                           onClick={() => handleSortRequest('keyword')}
+                          hideSortIcon
                         >
                           Keywords
                         </TableSortLabel>
                       </TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }} align="right">
+                      <TableCell sx={{ fontWeight: 'bold' }} align="center">
                         <TableSortLabel
                           active={orderBy === 'coefficient'}
                           direction={orderBy === 'coefficient' ? order : 'asc'}
                           onClick={() => handleSortRequest('coefficient')}
+                          hideSortIcon
                         >
                           Coefficient
                         </TableSortLabel>
                       </TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }} align="right">
+                      <TableCell sx={{ fontWeight: 'bold' }} align="center">
                         <TableSortLabel
                           active={orderBy === 'score'}
                           direction={orderBy === 'score' ? order : 'asc'}
                           onClick={() => handleSortRequest('score')}
+                          hideSortIcon
                         >
                           CLIP Score
                         </TableSortLabel>
                       </TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }} align="right">
+                      <TableCell sx={{ fontWeight: 'bold' }} align="center">
                         <TableSortLabel
                           active={orderBy === 'accuracy'}
                           direction={orderBy === 'accuracy' ? order : 'asc'}
                           onClick={() => handleSortRequest('accuracy')}
+                          hideSortIcon
                         >
                           Accuracy
                         </TableSortLabel>
                       </TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }} align="right">
+                      <TableCell sx={{ fontWeight: 'bold' }} align="center">
                         <TableSortLabel
                           active={orderBy === 'compactness'}
                           direction={orderBy === 'compactness' ? order : 'asc'}
                           onClick={() => handleSortRequest('compactness')}
+                          hideSortIcon
                         >
                           Compactness
                         </TableSortLabel>
@@ -585,7 +680,7 @@ const Keywords = ({
                   
                   {/* Table body */}
                   <TableBody>
-                    {sortedIndices?.map((sortedIndex) => {
+                    {sortedIndices?.map((sortedIndex, listIndex) => {
                       const data = keywords[sortedIndex];
                       const index = keywords.indexOf(data);
 
@@ -604,59 +699,112 @@ const Keywords = ({
                           backgroundColor: focus(data),
                           // border: 1,
                           borderColor: "gray",
-      
                         }}
                       >
                         {/* Keyword */}
-                        <TableCell component="th" scope="row">
-                          {data.keyword.map((k, index2) => (
-                            <Stack direction='row' sx={{alignItems: 'center', justifyContent: 'space-between'}}>
-                              <TextField
-                                key={index2}
-                                variant="standard"
-                                value={k}
-                                onChange={(e) => onKeywordChange(e, index, index2)}
-                                onClick={(e) => e.stopPropagation()}
-                                sx={{ width: "100%" }}
-                              />
-                              {
-                                (index2 > 0) && <LinkOffIcon
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    onDecoupling(data, index2, index);
-                                  }}
-                                  sx={{fontSize: '15px', cursor: 'pointer'}}
+                        <TableCell component="th" scope="row" sx={{
+                          position: 'relative',
+                          overflow: 'visible',
+                        }}>
+                          <Box sx={{ position: 'relative' }}>
+                            {
+                              equalKeywords(data?.keyword, hoveredData?.keyword) &&
+                              // Reverted images hover button
+                              <IconButton 
+                                sx={{
+                                  position: 'absolute',
+                                  top: -25,
+                                  right: -30,
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setRevertedImagePanel(true);
+                                }}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (revertedImagePanel) {
+                                    setRevertedImagePanel(false);
+                                  } else {
+                                    setRevertedImagePanel(true);
+                                  }
+                                }}
+                              >
+                                <ArrowRightIcon />
+                              </IconButton>
+                            }
+                            {data.keyword.map((k, index2) => (
+                              <Stack direction='row' sx={{alignItems: 'center', justifyContent: 'space-between'}}>
+                                <TextField
+                                  key={index2}
+                                  variant="standard"
+                                  value={k}
+                                  onChange={(e) => onKeywordChange(e, index, index2)}
+                                  onClick={(e) => onClick(e, data)}
+                                  sx={{ width: "100%" }}
                                 />
-                              }
-                            </Stack>
-                          ))}
+                                {
+                                  (index2 > 0) && <LinkOffIcon
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      onDecoupling(data, index2, index);
+                                    }}
+                                    sx={{fontSize: '15px', cursor: 'pointer'}}
+                                  />
+                                }
+                              </Stack>
+                            ))}
+                          </Box>
+                          {
+                            revertedImagePanel && equalKeywords(data?.keyword, hoveredData?.keyword) &&
+                            <Box
+                              sx={ (listIndex >= (sortedIndices.length - 4)) ? {
+                                position: 'absolute',
+                                top: '-310px',
+                                left: '100%',
+                              } : {
+                                position: 'absolute',
+                                top: '0',
+                                left: '100%',
+                              }}
+                              onMouseLeave={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setRevertedImagePanel(false);
+                              }}
+                            >
+                              <RevertedImage
+                                key={index}
+                                label={label}
+                                selectedRevertedImgInfo={selectedRevertedImgInfo}
+                                data={data}
+                                popoverCollapsed={popoverCollapsed}
+                              />
+                            </Box>
+                          }
                         </TableCell>
                         {/* Coefficient */}
-                        <TableCell sx={{ backgroundColor: centroidColor(distanceFromCentroid(data.images.flat()).average) }} align="right">
+                        <TableCell sx={{ backgroundColor: scoreColor(avgLimeCoefficient(data) * 3) }} align="center">
                           <Typography>{avgLimeCoefficient(data).toFixed(2)}</Typography>
                         </TableCell>
                         {/* CLIP Score */}
-                        <TableCell sx={{ backgroundColor: scoreColor(weightedSumScore(data)) }} align="right">
+                        <TableCell sx={{ backgroundColor: scoreColor(weightedSumScore(data)) }} align="center">
                           <Typography>{weightedSumScore(data).toFixed(2)}</Typography>
                         </TableCell>
                         {/* Accuracy */}
-                        <TableCell sx={{ backgroundColor: accuracyColor(calculateAccuracy(data)) }} align="right">
+                        <TableCell sx={{ backgroundColor: accuracyColor(calculateAccuracy(data)) }} align="center">
                           <Typography>{calculateAccuracy(data).toFixed(2)}</Typography>
                         </TableCell>
                         {/* Compactness */}
-                        <TableCell sx={{ backgroundColor: centroidColor(distanceFromCentroid(data.images.flat()).average) }} align="right">
+                        <TableCell sx={{ backgroundColor: centroidColor(distanceFromCentroid(data.images.flat()).average) }} align="center">
                           <Typography>{distanceFromCentroid(data.images.flat()).average.toFixed(2)}</Typography>
                         </TableCell>
                       </TableRow>
                     })}
                   </TableBody>
                 </Table>
-                <RevertedImage
-                  label={label}
-                  selectedRevertedImgInfo={selectedRevertedImgInfo}
-                  limeKeywords={fixedLimeKeyword}
-                />
               </>
             )
           }

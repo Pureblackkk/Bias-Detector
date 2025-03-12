@@ -1,12 +1,12 @@
 import os
 import json
-import ast
 import argparse
 from database_connector import DatabaseConnector
 from workflow_manager import UserWorkFLow
 from keyword_processor import KeywordProcessor
 from utils import get_built_in_dict, sample_solution_imgs
 from segmentor import Segmentor, UserImageSegmentor
+from inpainter import Inpainer
 
 DEFAULT_DATABASE_PATH = '/home/pureblackkkk/my_volume/Bias-Detector/backend/data.db'
 DEFAULT_TABLE_NAME = 'user_data'
@@ -46,8 +46,8 @@ if __name__ == '__main__':
         )
     )
 
-    # TODO: Create Impainter
-    # inpainter = Inpainer()
+    # Create Impainter
+    inpainter = Inpainer()
 
     # Create panoptic dict
     built_in_panoptic_dict = get_built_in_dict(
@@ -76,7 +76,7 @@ if __name__ == '__main__':
             uid=user_id,
             keyword_processor=keywordProcessor,
             segmentor=userSegmentor,
-            inpainter=None,
+            inpainter=inpainter,
         )
 
         # Inpaining for each solution

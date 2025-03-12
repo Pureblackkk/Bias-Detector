@@ -169,7 +169,7 @@ const useImagePanoptic = (
                 newPanopticInUse[url][keyword] = maskPathURI[idx];
             });
         } else {
-            // Update for all the image
+            // Update for all the image, including draw mask, watermark, and upload image
             Object.keys(newPanopticInUse).forEach((url) => {
                 newPanopticInUse[url][keyword] = maskPathURI;
             });

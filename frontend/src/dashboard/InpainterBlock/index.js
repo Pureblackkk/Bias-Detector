@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
     Paper,
     TextField,
@@ -11,6 +11,12 @@ import {
     Divider,
     Alert,
     Snackbar,
+    IconButton,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
 } from '@mui/material';
 import _ from 'lodash';
 import { ImageMask, getMaskPathFromKeywords } from './ImageMask';
@@ -22,6 +28,7 @@ import {
     callInpaintAPI,
     callGenerateMaskAPI,
 } from './api';
+import CloseIcon from '@mui/icons-material/Close';
 
 // Generate query with the given query
 const generateQuery = (solution) => {
@@ -42,12 +49,14 @@ const InpaintBlock = ({
     panoptic,
     panopticCategories,
     label,
+    deleteSolution,
 }) => {
     const [invert, setInvert] = useState(false);
     const [numImages, setNumImages] = useState(solution[0]);
     const [finished, setFinished] = useState(false);
     const [drawModalOpen, setDrawModalOpen] = useState(false);
     const [alert, setAlert] = useState({severity: 'success', content: '', open: false});
+    const [dialogOpen, setDialogOpen] = useState(false);
     const seemQueryRef = useRef(null);
     const queryRef = useRef(null);
 
@@ -72,7 +81,7 @@ const InpaintBlock = ({
         panoptic,
         normalImages,
         panopticCategories,
-        7,
+        10,
     )
 
     const generateMask = function (e) {
@@ -146,20 +155,51 @@ const InpaintBlock = ({
         })
         .then(() => {
             updateModal(false, '');
+            setAlert({
+                content: 'Action recored successfully!',
+                severity: 'success',
+                open: true,
+            });
         });
-    }
+    };
+
+    const handleDiaglogOpen = () => setDialogOpen(true);
+    const handleDialogClose = () => setDialogOpen(false);
+
+    const handleDialogConfirm = () => {
+        // Delete current solution
+        deleteSolution();
+        setDialogOpen(false);
+    };
 
     return (
         <Paper key={solIndex}>
-            <Paper elevation={4} sx={{ p: 2, mb: 2 }}>
-                <Typography sx={{ mb: 1 }} variant="subtitle1" gutterBottom>
-                    Generate <TextField
-                        variant="standard"
-                        value={numImages}
-                        onChange={e => setNumImages(parseInt(e.target.value) || 0)}
-                    /> images {generateQuery(solution)}
-                </Typography>
+            <Paper sx={{ p: 2 }}>
+                <Stack direction='row' sx={{ alignItems: 'center', justifyContent: 'center', position: 'relative'}}>
+                    <Typography sx={{ mb: 1 }} variant="subtitle1" gutterBottom>
+                        Generate <TextField
+                            variant="standard"
+                            value={numImages}
+                            onChange={e => setNumImages(parseInt(e.target.value) || 0)}
+                        /> images {generateQuery(solution)}
+                    </Typography>
 
+                    {/* Close Icon */}
+                    <IconButton
+                        onClick={handleDiaglogOpen}
+                        sx={{
+                            position: 'absolute',
+                            top: -20,
+                            right: 0,
+                        }}
+                    >
+                        <CloseIcon/>
+                    </IconButton>
+                </Stack>
+                <Typography sx={{ mb: 1 }} variant="caption" gutterBottom>
+                    *Note: The number is calculated automatically to ensure best optimization.
+                </Typography>
+                
                 {/* Block for shortcut */}
                 <Stack direction="row" spacing={3} sx={{ my: 2 }}>
                     <Box key="-1" component="div" sx={{ width: '160px', maxHeight: '100px' }} >
@@ -224,12 +264,35 @@ const InpaintBlock = ({
             />
             <Snackbar
                 open={alert.open}
-                autoHideDuration={1000}
+                autoHideDuration={2000}
                 onClose={() => setAlert({...alert, open: false})}
                 anchorOrigin={{ vertical: "top", horizontal: "center" }}
             >
                 <Alert severity={alert.severity}>{alert.content}</Alert>
             </Snackbar>
+
+            {/* Close Dialog */}
+            <Dialog
+                open={dialogOpen}
+                onClose={handleDialogClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    {"Are you sure you want to delete this solution?"}
+                </DialogTitle>
+                <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                    Once deleted, the keyword corresponding to the solution will not be restored
+                </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleDialogClose}>Cancel</Button>
+                    <Button onClick={handleDialogConfirm} autoFocus>
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Paper>
     );
 };

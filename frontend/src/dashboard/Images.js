@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import _, { range, set } from 'lodash';
 import * as d3 from "d3";
-import { PieChart, Pie, Cell } from "recharts";
+import { PieChart, Pie, Cell, Tooltip as ChartToolTip } from "recharts";
 import textures from 'textures';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -206,12 +206,25 @@ const Images = ({
       ...pred,
       opacity: hoveredImages ? (hoveredImages.includes(pred.image) ? 1 : 0) : 1,
     }));
-    if (clickedObj.keyword) {
+
+    // KeywordMode need to show all the images
+    if (!keywordMode && clickedObj.keyword) {
       const imagesSelected = clickedObj.images.flat();
-      data = data.filter(pred => imagesSelected.includes(pred.image));
+
+      // Solve the d3 directly set clicked obj bug
+      data = data.map(pred => ({
+        ...pred,
+        opacity: imagesSelected.includes(pred.image) ? 1 : 0,
+      }));
     }
     return data;
-  }, [prediction, hoveredImages, clickedObj]);
+  }, [
+    prediction,
+    hoveredImages,
+    clickedObj,
+    keywordMode,
+    keywords
+  ]);
 
   // Build lookup for quick mouse detection (unchanged)
   const gridDict = useMemo(() => {
@@ -250,8 +263,24 @@ const Images = ({
   const calculateOpacity = useCallback(
     (data, type) => {
       if (type === "image") {
+        // Speical case for keywordMode
+        if (!!keywordMode) {
+          if (data?.image in selectedImages) return 1.0;
+
+          let clickedObjHasImages = false;
+          clickedObj?.images?.forEach((imgList) => {
+            if (clickedObjHasImages) return;
+            if (imgList.includes(data?.image)) {
+              clickedObjHasImages = true;
+            }
+          });
+          if (clickedObjHasImages) return 1.0;
+          return 0.3;
+        }
+
         if (!allImagesLoaded) return 0;
         if (clickedImage) return clickedImage.image === data.image ? 1 : 0.1;
+
         return data.opacity;
       } else if (type === "rect") {
         if (viewToggle === "image") return data.opacity;
@@ -262,7 +291,7 @@ const Images = ({
       }
       return 0;
     },
-    [allImagesLoaded, viewToggle, keywordMode, clickedImage]
+    [allImagesLoaded, viewToggle, keywordMode, clickedImage, selectedImages, keywords, hoveredImages],
   );
 
   useEffect(() => {
@@ -327,6 +356,7 @@ const Images = ({
     // If not in keyword mode, add/update an overlay rectangle
     if (!keywordMode) {
       const rects = groups.selectAll("rect.overlay").data(d => [d]);
+
       rects.enter().append("rect")
         .attr("class", "overlay")
         .attr("width", imageSize)
@@ -340,7 +370,7 @@ const Images = ({
         .style("stroke", d => viewToggle === "prediction" ? "black" : calculateColor(d, selectedImages[d.image] ? true : false))
         .style("stroke-width", d => viewToggle === "prediction" ? 1 : 3)
         .style("opacity", d => calculateOpacity(d, "rect"))
-        .style("cursor", "pointer");
+        .style("cursor", d => d.opacity > 0 ? "pointer" : "default");
       rects.exit().remove();
     } else {
       zoomGroup.selectAll("rect.overlay").remove();
@@ -369,7 +399,19 @@ const Images = ({
     } else {
       zoomGroup.selectAll("line.quantile-line").remove();
     }
-  }, [fullData, coordinates, scale, imageSize, keywordMode, viewToggle, quantiles, selectedImages, calculateOpacity, calculateColor]);
+  }, [
+      fullData, 
+      coordinates, 
+      scale, 
+      imageSize, 
+      keywordMode, 
+      keywords, 
+      viewToggle, 
+      quantiles, 
+      selectedImages, 
+      calculateOpacity,
+      calculateColor,
+  ]);
 
   // ─── D3 ZOOM BEHAVIOR ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -405,6 +447,7 @@ const Images = ({
       const yIndex = Math.floor(yData);
       const d = gridDict[`${xIndex},${yIndex}`];
       if (!d) return;
+      if (d.opacity <= 0) return;
       setPopover({
         image: `/${d.image}`,
         caption: highlightKeywords(d.caption, clickedObj.keyword, keywords),
@@ -535,18 +578,22 @@ const Images = ({
                 <Cell key="cell0" fill="#C9C9C9" />
                 <Cell key="cell1" fill={pattern} />
               </Pie>
-              <Tooltip />
+              <ChartToolTip wrapperStyle={{ transform: 'translate(-60px, 50px)' }}/>
             </PieChart>
           </Box>
 
-          {/* TODO: Show in register manual keyword mode */}
+          {/* Show in register manual keyword mode */}
           {
             keywordMode && (
               <Box ml={'auto'} right={0} sx={{position: 'absolute', }}> 
                 {
                   <Stack direction='row'>
                       <Tooltip title={'Select Images Done'}>
-                        <Button onClick={() => registerManualKeyword(false)}>
+                        <Button onClick={() => {
+                          registerManualKeyword(
+                            false,
+                          )}
+                        }>
                           < CheckCircleOutlineIcon/>
                         </Button>
                       </Tooltip>
@@ -555,7 +602,10 @@ const Images = ({
                         'Cancel Adding Keyword'
                         : 'Cancel Updating Images to Keyword'
                       }>
-                        <Button onClick={() => registerManualKeyword(true)}>
+                        <Button onClick={() => {
+                          registerManualKeyword(true);
+                          setQuantiles(null);
+                        }}>
                           <CancelIcon sx={{}}/>
                         </Button>
                       </Tooltip>
