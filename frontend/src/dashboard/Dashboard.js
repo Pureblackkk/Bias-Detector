@@ -141,7 +141,6 @@ export default function Dashboard() {
 
   const registerManualKeyword = function (isCanel, expectedMode, updatingFunction) { // User add new keyword
     if (!!isCanel) {
-      setSelectedImages({});
       setKeywordMode(false);
       return;
     }

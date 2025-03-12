@@ -210,10 +210,21 @@ const Images = ({
     // KeywordMode need to show all the images
     if (!keywordMode && clickedObj.keyword) {
       const imagesSelected = clickedObj.images.flat();
-      data = data.filter(pred => imagesSelected.includes(pred.image));
+
+      // Solve the d3 directly set clicked obj bug
+      data = data.map(pred => ({
+        ...pred,
+        opacity: imagesSelected.includes(pred.image) ? 1 : 0,
+      }));
     }
     return data;
-  }, [prediction, hoveredImages, clickedObj, keywordMode, keywords]);
+  }, [
+    prediction,
+    hoveredImages,
+    clickedObj,
+    keywordMode,
+    keywords
+  ]);
 
   // Build lookup for quick mouse detection (unchanged)
   const gridDict = useMemo(() => {
@@ -345,6 +356,7 @@ const Images = ({
     // If not in keyword mode, add/update an overlay rectangle
     if (!keywordMode) {
       const rects = groups.selectAll("rect.overlay").data(d => [d]);
+
       rects.enter().append("rect")
         .attr("class", "overlay")
         .attr("width", imageSize)
@@ -387,7 +399,19 @@ const Images = ({
     } else {
       zoomGroup.selectAll("line.quantile-line").remove();
     }
-  }, [fullData, coordinates, scale, imageSize, keywordMode, keywords, viewToggle, quantiles, selectedImages, calculateOpacity, calculateColor]);
+  }, [
+      fullData, 
+      coordinates, 
+      scale, 
+      imageSize, 
+      keywordMode, 
+      keywords, 
+      viewToggle, 
+      quantiles, 
+      selectedImages, 
+      calculateOpacity,
+      calculateColor,
+  ]);
 
   // ─── D3 ZOOM BEHAVIOR ───────────────────────────────────────────────────────
   useEffect(() => {

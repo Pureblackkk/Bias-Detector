@@ -59,6 +59,16 @@ const equalKeywords = (keyword1, keyword2) => {
   return keyword1.length === keyword2.length && keyword1.every((val, index) => val === keyword2[index]);
 };
 
+/**
+ * Find if two keyword list is equal
+ */
+const equalKeywordList = (list1, list2) => {
+  const keyword1 = list1?.sort()?.join('&');
+  const keyword2 = list2?.sort()?.join('&');
+
+  return keyword1 === keyword2;
+}
+
 const Keywords = ({
   stageIndex,
   keywords,
@@ -78,8 +88,8 @@ const Keywords = ({
   keywordMode,
   selectedRevertedImgInfo,
 }) => {
-  const [focusKeyword, setFocusKeyword] = useState("")
-  const [clickedKeyword, setClickedKeyword] = useState("")
+  const [focusKeyword, setFocusKeyword] = useState([''])
+  const [clickedKeyword, setClickedKeyword] = useState([''])
   const [order, setOrder] = useState('desc');
   const [orderBy, setOrderBy] = useState('score');
   const [useLimeKeyword, setUseLimeKeyword] = useState(false);
@@ -98,12 +108,12 @@ const Keywords = ({
    * On click action
    */
   const onClick = function (e, data) {
-    if (clickedKeyword == data.keyword.join('&')) {
-      setClickedKeyword("")
+    if (equalKeywordList(clickedKeyword, data.keyword)) {
+      setClickedKeyword([''])
       setClickedObj({})
     }
     else {
-      setClickedKeyword(data.keyword.join('&'))
+      setClickedKeyword(data.keyword)
       setClickedObj(data)
     }
   }
@@ -150,7 +160,7 @@ const Keywords = ({
    */
   const onMouseOut = function (e) {
     setHoveredImages(null)
-    setFocusKeyword("")
+    setFocusKeyword([''])
 
     // Disable the adding icon
     setHoveredData(undefined);
@@ -162,13 +172,15 @@ const Keywords = ({
    */
   const focus = function (data) {
     const keyword = data.keyword;
+
     if (clickedImage) { // When image is clicked in explorer
       if (keyword == hoveredCaptionKeyword) return "#d0d0d0"
       if (data.images.flat().includes(clickedImage.image)) return "#d0d0d0"
       return "white"
     }
-    if (!clickedKeyword) return focusKeyword == keyword ? "#f0f0f0" : "white" // when keyword is hovered here
-    return clickedKeyword == keyword ? "#d0d0d0" : "white" // when keyword is clicked here
+
+    if (!clickedKeyword) return equalKeywordList(focusKeyword, keyword) ? "#f0f0f0" : "white" // when keyword is hovered here
+    return equalKeywordList(clickedKeyword, keyword) ? "#d0d0d0" : "white" // when keyword is clicked here
   }
 
   /**
@@ -193,7 +205,7 @@ const Keywords = ({
 
     // Update the state with the new keywords array
     setKeywords(updatedKeywords);
-    setClickedKeyword(updatedKeywords[index1].keyword.join('&'));
+    setClickedKeyword(updatedKeywords[index1].keyword);
     setClickedObj(updatedKeywords[index1]);
   }
 
@@ -420,11 +432,14 @@ const Keywords = ({
         <Stack direction="row" spacing={1} sx={{ w: '100%', mb: 1, alignItems: 'center', justifyContent: "center"}}>
           <Typography>All Keywords</Typography>
           <Switch onChange={(e) => {
+            // TODO: Clean the selected action
+            setClickedKeyword(['']);
+            setClickedObj({});
+
+            onMouseOut();
             setUseLimeKeyword(e.target.checked);
             if (e.target.checked) {
               setOrderBy('coefficient');
-              // Cancel adding the keyword
-              registerManualKeyword(true);
             } else {
               setOrderBy('score');
             }
@@ -537,7 +552,7 @@ const Keywords = ({
                               <AddBoxIcon 
                                 sx={{position: 'relative', ml: -3}}
                                 onClick={(e) => {
-                                  setClickedKeyword(data.keyword.join('&'));
+                                  setClickedKeyword(data.keyword);
                                   setClickedObj(data);
                                   e.preventDefault();
                                   e.stopPropagation();
@@ -551,7 +566,7 @@ const Keywords = ({
                               <IndeterminateCheckBoxIcon 
                                 sx={{position: 'relative', ml: -3}}
                                 onClick={(e) => {
-                                  setClickedKeyword(data.keyword.join('&'));
+                                  setClickedKeyword(data.keyword.sort());
                                   setClickedObj(data);
                                   e.preventDefault();
                                   e.stopPropagation();
