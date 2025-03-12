@@ -51,6 +51,7 @@ const parseKeywordsAndLimeKeywords = (allKeywords, limeKeywords) => {
 
     return {
       keyword: [data.keyword],
+      cachedKeyword: [data.keyword],
       score: [parseFloat(data.score)],
       accuracy: [parseFloat(data.accuracy)],
       images: [data.images],

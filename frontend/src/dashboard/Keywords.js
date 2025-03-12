@@ -16,6 +16,7 @@ import {
   TableSortLabel,
   Tooltip,
   Box,
+  IconButton,
 } from '@mui/material';
 import _ from 'lodash';
 import * as d3 from "d3";
@@ -24,6 +25,7 @@ import LinkOffIcon from '@mui/icons-material/LinkOff';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import IndeterminateCheckBoxIcon from '@mui/icons-material/IndeterminateCheckBox';
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 
 /**
  * Calculate compachness
@@ -93,17 +95,11 @@ const Keywords = ({
   const [order, setOrder] = useState('desc');
   const [orderBy, setOrderBy] = useState('score');
   const [useLimeKeyword, setUseLimeKeyword] = useState(false);
-  const [fixedLimeKeyword, setFixedLimeKeyword] = useState(undefined);
   const [hoveredData, setHoveredData] = useState(undefined);
   const [addingButtonStyle, setAddingButtonStyle] = useState(undefined);
+  const [revertedImagePanel, setRevertedImagePanel] = useState(false);
   const hoverAddingButtonTarget = useRef(undefined);
   
-
-  useEffect(() => {
-    const limeKeyword = keywords?.filter((data) => data?.coefficient?.[0] !== undefined)
-    setFixedLimeKeyword(limeKeyword);
-  }, []);
-
   /**
    * On click action
    */
@@ -228,6 +224,7 @@ const Keywords = ({
 
     const newKeyword = {
       keyword: checkedKeywords.map(keyword => keyword.keyword).flat(1),
+      cachedKeyword: checkedKeywords.map(keyword => keyword.cachedKeyword).flat(1),
       score: checkedKeywords.map(keyword => keyword.score).flat(1),
       accuracy: checkedKeywords.map(keyword => keyword.accuracy).flat(1),
       images: checkedKeywords.map(keyword => keyword.images).flat(1),
@@ -546,7 +543,6 @@ const Keywords = ({
                           direction='row'
                           alignItems='center'
                         >
-                          {/* equalKeywords(data?.keyword, hoveredData?.keyword) */}
                           { equalKeywords(data?.keyword, hoveredData?.keyword) && 
                             <Stack direction='column' sx={addingButtonStyle ?? undefined}>
                               <AddBoxIcon 
@@ -703,33 +699,86 @@ const Keywords = ({
                           backgroundColor: focus(data),
                           // border: 1,
                           borderColor: "gray",
-      
                         }}
                       >
                         {/* Keyword */}
-                        <TableCell component="th" scope="row">
-                          {data.keyword.map((k, index2) => (
-                            <Stack direction='row' sx={{alignItems: 'center', justifyContent: 'space-between'}}>
-                              <TextField
-                                key={index2}
-                                variant="standard"
-                                value={k}
-                                onChange={(e) => onKeywordChange(e, index, index2)}
-                                onClick={(e) => onClick(e, data)}
-                                sx={{ width: "100%" }}
-                              />
-                              {
-                                (index2 > 0) && <LinkOffIcon
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    onDecoupling(data, index2, index);
-                                  }}
-                                  sx={{fontSize: '15px', cursor: 'pointer'}}
+                        <TableCell component="th" scope="row" sx={{
+                          position: 'relative',
+                          overflow: 'visible',
+                        }}>
+                          <Box sx={{ position: 'relative' }}>
+                            {
+                              equalKeywords(data?.keyword, hoveredData?.keyword) &&
+                              // Reverted images hover button
+                              <IconButton 
+                                sx={{
+                                  position: 'absolute',
+                                  top: -25,
+                                  right: -30,
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setRevertedImagePanel(true);
+                                }}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (revertedImagePanel) {
+                                    setRevertedImagePanel(false);
+                                  } else {
+                                    setRevertedImagePanel(true);
+                                  }
+                                }}
+                              >
+                                <ArrowRightIcon />
+                              </IconButton>
+                            }
+                            {data.keyword.map((k, index2) => (
+                              <Stack direction='row' sx={{alignItems: 'center', justifyContent: 'space-between'}}>
+                                <TextField
+                                  key={index2}
+                                  variant="standard"
+                                  value={k}
+                                  onChange={(e) => onKeywordChange(e, index, index2)}
+                                  onClick={(e) => onClick(e, data)}
+                                  sx={{ width: "100%" }}
                                 />
-                              }
-                            </Stack>
-                          ))}
+                                {
+                                  (index2 > 0) && <LinkOffIcon
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      onDecoupling(data, index2, index);
+                                    }}
+                                    sx={{fontSize: '15px', cursor: 'pointer'}}
+                                  />
+                                }
+                              </Stack>
+                            ))}
+                          </Box>
+                          {
+                            revertedImagePanel && equalKeywords(data?.keyword, hoveredData?.keyword) &&
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                top: '0',
+                                left: '100%',
+                              }}
+                              onMouseLeave={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setRevertedImagePanel(false);
+                              }}
+                            >
+                              <RevertedImage
+                                key={index}
+                                label={label}
+                                selectedRevertedImgInfo={selectedRevertedImgInfo}
+                                data={data}
+                              />
+                            </Box>
+                          }
                         </TableCell>
                         {/* Coefficient */}
                         <TableCell sx={{ backgroundColor: scoreColor(avgLimeCoefficient(data) * 3) }} align="center">
@@ -751,11 +800,6 @@ const Keywords = ({
                     })}
                   </TableBody>
                 </Table>
-                <RevertedImage
-                  label={label}
-                  selectedRevertedImgInfo={selectedRevertedImgInfo}
-                  limeKeywords={fixedLimeKeyword}
-                />
               </>
             )
           }
