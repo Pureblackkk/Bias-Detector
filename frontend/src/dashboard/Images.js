@@ -370,7 +370,7 @@ const Images = ({
         .style("stroke", d => viewToggle === "prediction" ? "black" : calculateColor(d, selectedImages[d.image] ? true : false))
         .style("stroke-width", d => viewToggle === "prediction" ? 1 : 3)
         .style("opacity", d => calculateOpacity(d, "rect"))
-        .style("cursor", "pointer");
+        .style("cursor", d => d.opacity > 0 ? "pointer" : "default");
       rects.exit().remove();
     } else {
       zoomGroup.selectAll("rect.overlay").remove();
@@ -447,6 +447,7 @@ const Images = ({
       const yIndex = Math.floor(yData);
       const d = gridDict[`${xIndex},${yIndex}`];
       if (!d) return;
+      if (d.opacity <= 0) return;
       setPopover({
         image: `/${d.image}`,
         caption: highlightKeywords(d.caption, clickedObj.keyword, keywords),
