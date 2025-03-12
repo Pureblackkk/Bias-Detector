@@ -680,7 +680,7 @@ const Keywords = ({
                   
                   {/* Table body */}
                   <TableBody>
-                    {sortedIndices?.map((sortedIndex) => {
+                    {sortedIndices?.map((sortedIndex, listIndex) => {
                       const data = keywords[sortedIndex];
                       const index = keywords.indexOf(data);
 
@@ -760,7 +760,11 @@ const Keywords = ({
                           {
                             revertedImagePanel && equalKeywords(data?.keyword, hoveredData?.keyword) &&
                             <Box
-                              sx={{
+                              sx={ (listIndex >= (sortedIndices.length - 4)) ? {
+                                position: 'absolute',
+                                top: '-310px',
+                                left: '100%',
+                              } : {
                                 position: 'absolute',
                                 top: '0',
                                 left: '100%',
