@@ -140,6 +140,7 @@ export default function Dashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [stageIndex, setStageIndex] = useState(0);
   const modalContent = useRef('');
+  const [glyphMode, setGlyphMode] = useState("none") // "location", "none"
 
   // Ref for adding the selected image to the keyword select
   const updatingImagesToKeywordsRef = useRef(undefined);
@@ -240,6 +241,8 @@ export default function Dashboard() {
           keywords={keywords}
           registerManualKeyword={registerManualKeyword}
           gradcam={selectedGradcam}
+          glyphMode={glyphMode}
+          setGlyphMode={setGlyphMode}
         />
       </>
     );
@@ -253,6 +256,7 @@ export default function Dashboard() {
         setHoveredCaptionKeyword={setHoveredCaptionKeyword}
         popoverCollapsed={popoverCollapsed}
         setPopoverCollapsed={setPopoverCollapsed}
+        glyphMode={glyphMode}
       />
     </>);
   };

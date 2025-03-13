@@ -81,7 +81,9 @@ const Images = ({
   setPopover,
   keywords,
   registerManualKeyword,
-  gradcam
+  gradcam,
+  glyphMode,
+  setGlyphMode
 }) => {
   // Use an SVG ref instead of a canvas ref
   const svgRef = useRef(null);
@@ -90,7 +92,6 @@ const Images = ({
   const [allImagesLoaded, setAllImagesLoaded] = useState(false);
   const [quantiles, setQuantiles] = useState(null);
   const [pattern, setPattern] = useState("#C9C9C9");
-  const [glyphMode, setGlyphMode] = useState("none") // "location", "none"
 
 
   const toggle = () => {
@@ -286,8 +287,12 @@ const Images = ({
         if (clickedImage) return clickedImage.image === data.image ? 1 : 0.1;
 
         return data.opacity;
+
       } else if (type === "rect") {
-        if (viewToggle === "image") return data.opacity;
+        if (viewToggle === "image"){
+          if (data.correct) return 0;
+          else return data.opacity*0.7
+        }
         if (!!keywordMode) return 1;
         if (clickedImage) return clickedImage.image === data.image ? 1 : 0.1;
         if (!allImagesLoaded) return 0;
@@ -304,7 +309,7 @@ const Images = ({
       .lines()
       .size(4)
       .strokeWidth(1)
-      .background("#C9C9C9");
+      .background("#a9a9a9");
 
     svg.call(texture);
     setPattern(texture.url());
@@ -366,13 +371,13 @@ const Images = ({
         .attr("width", imageSize)
         .attr("height", imageSize)
         .merge(rects)
-        .attr("x", d => viewToggle === "image" ? 1.5 : 0)
-        .attr("y", d => viewToggle === "image" ? 1.5 : 0)
-        .attr("width", d => viewToggle === "image" ? imageSize - 3 : imageSize)
-        .attr("height", d => viewToggle === "image" ? imageSize - 3 : imageSize)
-        .style("fill", d => viewToggle === "prediction" ? calculateColor(d, selectedImages[d.image] ? true : false) : "none")
-        .style("stroke", d => viewToggle === "prediction" ? "black" : calculateColor(d, selectedImages[d.image] ? true : false))
-        .style("stroke-width", d => viewToggle === "prediction" ? 1 : 3)
+        .attr("x", viewToggle === "image" ? 0.5 : 0)
+        .attr("y", viewToggle === "image" ? 0.5 : 0)
+        .attr("width", viewToggle === "image" ? imageSize - 0.5 : imageSize)
+        .attr("height", viewToggle === "image" ? imageSize - 0.5 : imageSize)
+        .style("fill", d => calculateColor(d, selectedImages[d.image] ? true : false))
+        .style("stroke", "black")
+        .style("stroke-width", 1)
         .style("opacity", d => calculateOpacity(d, "rect"))
         .style("cursor", d => d.opacity > 0 ? "pointer" : "default");
       rects.exit().remove();  
@@ -504,6 +509,7 @@ const Images = ({
       setPopover({
         image: `/${d.image}`,
         caption: highlightKeywords(d.caption, clickedObj.keyword, keywords),
+        triangle: d.section
       });
     };
     svg.on("mousemove", mousemoveFn);
@@ -542,6 +548,7 @@ const Images = ({
           setPopover({
             image: `/${d.image}`,
             caption: highlightKeywords(d.caption, clickedObj.keyword, keywords),
+            triangle: d.section
           });
         }
       }
@@ -605,8 +612,25 @@ const Images = ({
                 <img src="/border.png" alt="icon" width="24" height="24" />
               )}
             </IconButton>
+            <IconButton
+              onClick={() => setGlyphMode(glyphMode === "location" ? "none" : "location")}
+              sx={{
+                position: "absolute",
+                left: "50px",
+                padding: "8px 12px",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer"
+              }}
+            >
+              {glyphMode === "location" ? (
+                <img src="/triangle_fill.png" alt="icon" width="24" height="24" />
+              ) : (
+                <img src="/triangle_border.png" alt="icon" width="24" height="24" />
+              )}
+            </IconButton>
             <Typography variant="h6">Explore Panel</Typography>
-            <PieChart style={{ marginLeft: 10 }} width={40} height={40}>
+            <PieChart style={{ marginLeft: 10, marginRight:20 }} width={40} height={40}>
               <Pie
                 data={[
                   {
@@ -633,6 +657,7 @@ const Images = ({
               </Pie>
               <ChartToolTip wrapperStyle={{ transform: 'translate(-60px, 50px)' }}/>
             </PieChart>
+           
           </Box>
 
           {/* Show in register manual keyword mode */}
