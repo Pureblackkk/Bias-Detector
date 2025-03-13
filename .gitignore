@@ -5,6 +5,8 @@ backend/post-training/augmentations/*
 backend/static/generated_masks/*
 backend/static/phanoptic/*
 backend/static/gradcam/*
+backend/static/watermark/*
+backend/static/upload_image/*
 backend/data.db
 
 npm-debug.log*
