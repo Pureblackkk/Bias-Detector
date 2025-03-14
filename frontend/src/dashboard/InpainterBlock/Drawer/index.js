@@ -20,10 +20,12 @@ const Draw = ({
     modalOpen,
     setModalOpen,
     updateManualKeyword,
+    updateOverlayKeyword,
     updateMaskedImage,
     updatePanoptic,
     selectedImgURL,
     updateModal,
+    drawerType,
 }) => {
     const canvasRef = useRef(null);
     const [eraseMode, setEraseMode] = useState(false);
@@ -36,17 +38,15 @@ const Draw = ({
         waterMarkReset,
         waterMarkExportImages,
         waterMarkUIComponentRender,
-        watermarkCanvasRef,
-        showWaterMark,
-    } = useWaterMark();
+        watermarkRefFunc,
+    } = useWaterMark(drawerType);
 
     const {
         overlayReset,
         overlayExportImages,
         overlayImageUIComponentRender,
         overlayCanvasRef,
-        showOverlay,
-    } = useOverLay();
+    } = useOverLay(drawerType);
 
     // Register new mask 
     const handleRegisterClick = async () => {
@@ -60,15 +60,24 @@ const Draw = ({
             'Generating Masks..., please wait!',
         );
 
-        const image = await canvasRef.current.exportImage('png');
-        const watermark = await waterMarkExportImages();
-        const uploadImage = await overlayExportImages();
+        const callParams = {
+            image: undefined,
+            uploadImage: undefined,
+            watermark: undefined,
+        };
 
-        callDrawMaskAPI(
-            image,
-            uploadImage,
-            watermark,
-        )
+        if (drawerType === 'draw') {
+            const image = await canvasRef.current.exportImage('png');
+            callParams['image'] = image;
+        } else if (drawerType === 'upload') {
+            const uploadImage = await overlayExportImages();
+            callParams['uploadImage'] = uploadImage;
+        } else if (drawerType === 'watermark') {
+            const watermark = await waterMarkExportImages();
+            callParams['watermark'] = watermark;
+        }
+
+        callDrawMaskAPI(callParams)
         .then((all_path) => {
             // Update panoptic
             updatePanoptic(
@@ -78,8 +87,12 @@ const Draw = ({
             );
 
             // Update registered mask
-            updateManualKeyword(maskName);
-
+            if (drawerType === 'draw') {
+                updateManualKeyword(maskName);
+            } else {
+                updateOverlayKeyword(maskName);
+            }
+           
             // Update mannual keyword
             updateMaskedImage(maskName, ['draw']);
 
@@ -156,65 +169,67 @@ const Draw = ({
                         onChange={(e) => { setMaskName(e.target.value) }}
                     />
                     <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <Stack direction='column' spacing={1}>
-                            {/* First row */}
-                            <Stack direction='row' spacing={2}>
-                                <Button variant="outlined" disabled={!eraseMode} onClick={handlePenClick}>
-                                    Pen
-                                </Button>
-                                <Button variant="outlined" disabled={eraseMode} onClick={handleEraserClick}>
-                                    Eraser
-                                </Button>
-                            </Stack>
+                        {/* Draw Panel */}
+                        {
+                            drawerType === 'draw' && <div>
+                                <Stack direction='column' spacing={1}>
+                                    {/* First row */}
+                                    <Stack direction='row' spacing={2}>
+                                        <Button variant="outlined" disabled={!eraseMode} onClick={handlePenClick}>
+                                            Pen
+                                        </Button>
+                                        <Button variant="outlined" disabled={eraseMode} onClick={handleEraserClick}>
+                                            Eraser
+                                        </Button>
+                                    </Stack>
 
-                            {/* Second row */}
-                            <Stack direction='row' spacing={2}>
-                                <Button variant="outlined" onClick={handleUndoClick}>
-                                    Undo
-                                </Button>
-                                <Button variant="outlined" onClick={handleRedoClick}>
-                                    Redo
-                                </Button>
-                                <Button variant="outlined" onClick={handleClearClick}>
-                                    Clear
-                                </Button>
-                                <Button variant="outlined" onClick={handleRegisterClick}>
-                                    Register
-                                </Button>
-                            </Stack>
-                        </Stack>
-                        {!eraseMode && <div>
-                            <Typography gutterBottom>
-                                Stroke width
-                            </Typography>
-                            <Slider
-                                disabled={eraseMode}
-                                min={1}
-                                max={100}
-                                value={strokeWidth}
-                                onChange={handleStrokeWidthChange}
-                                aria-labelledby="stroke-width-slider"
-                            />
-                        </div>}
-                        {eraseMode && <div>
-                            <Typography gutterBottom>
-                                Eraser width
-                            </Typography>
-                            <Slider
-                                disabled={!eraseMode}
-                                min={1}
-                                max={100}
-                                value={strokeWidth}
-                                onChange={handleEraserWidthChange}
-                                aria-labelledby="eraser-width-slider"
-                            />
-                        </div>}
+                                    {/* Second row */}
+                                    <Stack direction='row' spacing={2}>
+                                        <Button variant="outlined" onClick={handleUndoClick}>
+                                            Undo
+                                        </Button>
+                                        <Button variant="outlined" onClick={handleRedoClick}>
+                                            Redo
+                                        </Button>
+                                        <Button variant="outlined" onClick={handleClearClick}>
+                                            Clear
+                                        </Button>
+                                    </Stack>
+                                </Stack>
+                                {!eraseMode && <div>
+                                    <Typography gutterBottom>
+                                        Stroke width
+                                    </Typography>
+                                    <Slider
+                                        disabled={eraseMode}
+                                        min={1}
+                                        max={100}
+                                        value={strokeWidth}
+                                        onChange={handleStrokeWidthChange}
+                                        aria-labelledby="stroke-width-slider"
+                                    />
+                                </div>}
+                                {eraseMode && <div>
+                                    <Typography gutterBottom>
+                                        Eraser width
+                                    </Typography>
+                                    <Slider
+                                        disabled={!eraseMode}
+                                        min={1}
+                                        max={100}
+                                        value={strokeWidth}
+                                        onChange={handleEraserWidthChange}
+                                        aria-labelledby="eraser-width-slider"
+                                    />
+                                </div>}
+                            </div>
+                        }
 
                         {/* Overlay Panel */}
-                        { overlayImageUIComponentRender() }
+                        { drawerType === 'upload' && overlayImageUIComponentRender() }
 
                         {/* Watermark Panel */}
-                        { waterMarkUIComponentRender() }
+                        { drawerType === 'watermark' && waterMarkUIComponentRender() }
 
                         {/* Preview image and mask */}
                         <Stack direction='row'>
@@ -231,7 +246,7 @@ const Draw = ({
 
                                 {/* Overlay preview */}
                                 {
-                                    showOverlay && 
+                                    drawerType === 'upload' && 
                                     <canvas
                                         ref={overlayCanvasRef}
                                         width="512"
@@ -247,9 +262,9 @@ const Draw = ({
 
                                 {/* Watermark preview */}
                                 {
-                                    showWaterMark && 
+                                    drawerType === 'watermark' && 
                                     <canvas
-                                        ref={watermarkCanvasRef}
+                                        ref={watermarkRefFunc}
                                         width="512"
                                         height="512"
                                         style={{
@@ -263,6 +278,10 @@ const Draw = ({
                             </div>
                         </Stack>
                         
+                        {/* Register button */}
+                        <Button variant="contained" onClick={handleRegisterClick}>
+                            Register
+                        </Button>
                     </div>
                 </Box>
             </Modal>

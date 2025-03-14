@@ -77,11 +77,8 @@ const callInpaintAPI = (data) => {
  * Call API /api/manual_mask
  * Save the mask which is manually generated
  */
-const callDrawMaskAPI = (
-    image,
-    uploadImage,
-    watermark,
-) => {
+const callDrawMaskAPI = (params) => {
+    const { image, uploadImage, watermark } = params;
     return fetch(`${API_URL}/api/manual_mask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

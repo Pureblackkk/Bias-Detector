@@ -43,6 +43,7 @@ const useImagePanoptic = (
     const [selectedImgURL, setSelectedImgURL] = useState(_.sampleSize(normalImages, blockShowImageNum));
     const [selectedKeywords, setSelectedKeywords] = useState(new Set());
     const [manualKeywords, setManualKeywords] = useState(new Set());
+    const [overlayKeywords, setOverlayKeywords] = useState(new Set());
     const generatedMaskImgPair = useRef({});
     const [modalOpen, setModalOpen] = useState(false);
     const modalContent = useRef('');
@@ -204,6 +205,13 @@ const useImagePanoptic = (
         setManualKeywords(new Set(manualKeywords.add(newKeyword)));
     }
 
+    /**
+     * Define overlay keyword action
+     */
+    const updateOverlayKeyword = (newKeyword) => {
+        setOverlayKeywords(new Set(overlayKeywords.add(newKeyword)));
+    }
+
     return {
         filerMaskedImage,
         updateMaskedImage,
@@ -217,6 +225,8 @@ const useImagePanoptic = (
         categoriesNumPair,
         manualKeywords,
         updateManualKeyword,
+        overlayKeywords,
+        updateOverlayKeyword,
         reloadImageBatch,
         modalOpen,
         modalContent,

@@ -21,6 +21,7 @@ import {
 import _ from 'lodash';
 import { ImageMask, getMaskPathFromKeywords } from './ImageMask';
 import Shortcut from './Shortcut';
+import Overlay from './Shortcut/overlay';
 import useImagePanoptic from './hooks/image-panoptic';
 import Message from './Message';
 import Drawer from './Drawer';
@@ -29,6 +30,8 @@ import {
     callGenerateMaskAPI,
 } from './api';
 import CloseIcon from '@mui/icons-material/Close';
+import DriveFolderUploadIcon from '@mui/icons-material/DriveFolderUpload';
+import BrandingWatermarkIcon from '@mui/icons-material/BrandingWatermark';
 
 // Generate query with the given query
 const generateQuery = (solution) => {
@@ -55,8 +58,10 @@ const InpaintBlock = ({
     const [numImages, setNumImages] = useState(solution[0]);
     const [finished, setFinished] = useState(false);
     const [drawModalOpen, setDrawModalOpen] = useState(false);
+    const drawModalTypeRef = useRef(undefined);
     const [alert, setAlert] = useState({severity: 'success', content: '', open: false});
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [newMaskDialog, setNewMaskDialog] = useState(false);
     const seemQueryRef = useRef(null);
     const queryRef = useRef(null);
 
@@ -72,6 +77,8 @@ const InpaintBlock = ({
         categoriesNumPair,
         manualKeywords,
         updateManualKeyword,
+        overlayKeywords,
+        updateOverlayKeyword,
         reloadImageBatch,
         modalOpen,
         modalContent,
@@ -119,6 +126,9 @@ const InpaintBlock = ({
 
             // Update message modal
             updateModal(false, '');
+
+            // Close dialog
+            setNewMaskDialog(false);
         })
     }
 
@@ -200,28 +210,63 @@ const InpaintBlock = ({
                     *Note: The number is calculated automatically to ensure best optimization.
                 </Typography>
                 
-                {/* Block for shortcut */}
-                <Stack direction="row" spacing={3} sx={{ my: 2 }}>
-                    <Box key="-1" component="div" sx={{ width: '160px', maxHeight: '100px' }} >
-                        <TextField inputRef={seemQueryRef} sx={{ width: '160px', mb: 1, height: "50px" }} label="New Mask Keyword" variant="standard" />
-                        <Stack direction="row" spacing={1}>
-                            <Button size="small" sx={{ width: '100px', fontSize: '12px' }} variant="contained" onClick={(e) => generateMask(e, solIndex)}>
-                                Generate
-                            </Button>
-                            <Button size="small" sx={{ width: '100px', fontSize: '12px'}} variant="contained" onClick={(e) => setDrawModalOpen(true)}>
-                                Draw
-                            </Button>
-                        </Stack>
-                    </Box>
-                    <Shortcut
-                        solIndex={solIndex}
-                        selectedKeywords={selectedKeywords}
-                        updateKeywords={updateKeywords}
-                        categoriesNumPair={categoriesNumPair}
-                        manualKeywords={manualKeywords}
-                        finished={finished}
-                        totalCount={normalImages.length}
-                    />
+                {/* Block for operation panel */}
+                <Stack direction="row" spacing={3} sx={{ my: 2, width: '100%' }}>
+                    {/* Mask */}
+                    <Stack direction="row" spacing={3} sx={{ pl: 2, pr: 2, my: 2, boxShadow: 3, minWidth: '56vw', flex: "1 1 auto"}}>
+                        <Box key="-1" component="div" sx={{ width: '160px', maxHeight: '100px' }} >
+                            <Stack direction="column" spacing={1} alignItems='center' justifyContent='center' height='100%'>
+                                <Button size="small" sx={{ width: '170px', fontSize: '12px', textTransform: "none" }} variant="contained" onClick={(e) => setNewMaskDialog(true)}>
+                                    Segment New Mask
+                                </Button>
+                                <Button size="small" sx={{ width: '170px', fontSize: '12px', textTransform: "none" }} variant="contained" onClick={(e) => {
+                                    drawModalTypeRef.current = 'draw';
+                                    setDrawModalOpen(true);
+                                }}>
+                                    Manually Draw Mask
+                                </Button>
+                            </Stack>
+                        </Box>
+                        <Shortcut
+                            solIndex={solIndex}
+                            selectedKeywords={selectedKeywords}
+                            updateKeywords={updateKeywords}
+                            categoriesNumPair={categoriesNumPair}
+                            manualKeywords={manualKeywords}
+                            finished={finished}
+                            totalCount={normalImages.length}
+                        />
+                    </Stack>
+
+                    {/* Overlay */}
+                    <Stack direction='row' justifyContent='flex-end' spacing={3} sx={{pl: 2, pr: 3, my: 2, boxShadow: 3, maxWidth: '24vw', flex: '1 1 auto'}} >
+                        <Overlay
+                            solIndex={solIndex}
+                            selectedKeywords={selectedKeywords}
+                            updateKeywords={updateKeywords}
+                            overlayKeywords={overlayKeywords}
+                            finished={finished}
+                        />
+                        <Box key="-1" component="div" sx={{ width: '160px', maxHeight: '100px' }} >
+                            <Stack sx={{ p: 2 }} spacing={1} alignItems='center' justifyContent='center' >
+                                <Button size="small" sx={{ width: '180px', fontSize: '12px', textTransform: "none"}} variant="contained" startIcon={<BrandingWatermarkIcon/>}
+                                    onClick={(e) => {
+                                        setDrawModalOpen(true);
+                                        drawModalTypeRef.current = 'watermark'
+                                    }}
+                                >
+                                    Add Watermark Overlay
+                                </Button>
+                                <Button size="small" sx={{ width: '180px', fontSize: '12px', textTransform: "none" }} variant="contained" startIcon={<DriveFolderUploadIcon/>}
+                                    onClick={(e) => {
+                                        setDrawModalOpen(true);
+                                        drawModalTypeRef.current = 'upload'
+                                    }}>
+                                    Upload Picture Overlay
+                                </Button>
+                            </Stack>
+                        </Box>
+                    </Stack>
                 </Stack>
                 <Divider />
                 
@@ -257,10 +302,12 @@ const InpaintBlock = ({
                 modalOpen={drawModalOpen}
                 setModalOpen={setDrawModalOpen}
                 updateManualKeyword={updateManualKeyword}
+                updateOverlayKeyword={updateOverlayKeyword}
                 updateMaskedImage={updateMaskedImage}
                 selectedImgURL={selectedImgURL}
                 updateModal={updateModal}
                 updatePanoptic={updatePanoptic}
+                drawerType={drawModalTypeRef.current ?? 'draw'}
             />
             <Snackbar
                 open={alert.open}
@@ -290,6 +337,32 @@ const InpaintBlock = ({
                     <Button onClick={handleDialogClose}>Cancel</Button>
                     <Button onClick={handleDialogConfirm} autoFocus>
                         Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* New mask dialog */}
+            <Dialog
+                open={newMaskDialog}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+               
+            >
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}>
+                    <DialogTitle id="alert-dialog-title">
+                        {"Input a prompt for segmenting new mask"}
+                    </DialogTitle>
+                    <TextField inputRef={seemQueryRef} sx={{ width: '160px', mb: 1, height: "50px" }} label="New Mask Keyword" variant="standard" />
+                </Box>
+                <DialogActions>
+                    <Button sx={{ textTransform: 'none' }} onClick={(e) => generateMask(e)}>Confirm</Button>
+                    <Button sx={{ textTransform: 'none' }} onClick={() => setNewMaskDialog(false)} autoFocus>
+                        Cancel
                     </Button>
                 </DialogActions>
             </Dialog>

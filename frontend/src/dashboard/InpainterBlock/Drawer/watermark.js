@@ -13,17 +13,22 @@ import {
     useEffect,
 } from "react";
 
-export const useWaterMark = () => {
-    const watermarkCanvasRef = useRef(null);
+export const useWaterMark = (type) => {
+    const [watermarkCanvasRef, setWatermarkRef] = useState(null);
     const [watermark, setWatermarkContent] = useState('watermark');
     const [size, setSize] = useState(50);
     const [rotation, setRotation] = useState(0);
     const [position, setPosition] = useState({ x: 120, y: 256 });
-    const [showWaterMark, setShowWaterMark] = useState(false);
+
+    const watermarkRefFunc = (node) => {
+        if (node) {
+            setWatermarkRef(node);
+        }
+    };
 
     // Draw watermark
     const drawWatermark = () => {
-        const canvas = watermarkCanvasRef.current;
+        const canvas = watermarkCanvasRef;
         if (!canvas) return;
 
         const ctx = canvas.getContext("2d");
@@ -39,28 +44,15 @@ export const useWaterMark = () => {
     };
 
     const exportImages = async () => {
-        if (showWaterMark) {
-            const watermarkImage = watermarkCanvasRef.current.toDataURL("image/png");
-            return watermarkImage;
-        } else {
-            return undefined;
-        }
+        const watermarkImage = watermarkCanvasRef.toDataURL("image/png");
+        return watermarkImage;
     };
 
     const uiComponentRender = () => {
         return (
             <>
-                <FormControlLabel
-                    control={
-                        <Checkbox
-                            checked={showWaterMark}
-                            onChange={(e) => setShowWaterMark(e.target.checked)}
-                        />
-                    }
-                    label="Generate watermark"
-                />
                 {
-                    showWaterMark && <Stack direction='row' sx={{ alignItems: 'center' }} spacing={1}>
+                    <Stack direction='row' sx={{ alignItems: 'center' }} spacing={1}>
                         <TextField
                             label="Content"
                             value={watermark}
@@ -121,25 +113,23 @@ export const useWaterMark = () => {
             </>
         );
     };
-    
 
+    
     useEffect(() => {
         drawWatermark();
-    }, [showWaterMark, watermark, size, rotation, position, watermarkCanvasRef.current]);
+    }, [watermark, size, rotation, position, watermarkCanvasRef, type]);
 
     const waterMarkReset = () => {
         setWatermarkContent('watermark');
         setSize(50);
         setRotation(0);
         setPosition({x: 100, y: 100});
-        setShowWaterMark(false);
     };
     
     return {
         waterMarkReset,
         waterMarkExportImages: exportImages,
         waterMarkUIComponentRender: uiComponentRender,
-        showWaterMark,
-        watermarkCanvasRef,
+        watermarkRefFunc,
     };
 }

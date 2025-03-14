@@ -18,7 +18,6 @@ export const useOverLay = () => {
     const [overlaySize, setOverlaySize] = useState(1);
     const [overlayPosition, setOverlayPosition] = useState({ x: 100, y: 100 });
     const [showOverlay, setShowOverlay] = useState(false);
-
     const fileInputRef = useRef(null);
 
     // handle upload file
@@ -63,7 +62,7 @@ export const useOverLay = () => {
 
     const exportImages = async () => {
         if (showOverlay) {
-            const overlayImage = overlayCanvasRef.current.toDataURL("image/png");
+            const overlayImage = overlayCanvasRef?.current?.toDataURL("image/png");
             return overlayImage;
         } else {
             return undefined;
