@@ -124,27 +124,28 @@ def manual_mask():
     print(f"Decompressed to {len(decompressed_data)} bytes")
     data = json.loads(decompressed_data)
 
+    local_mask_path = ''
+    if 'image' in data:
+        image_data = data['image']
+        _, image_data = image_data.split("data:image/png;base64,")
+        image_bytes = base64.b64decode(image_data)
+        mask_image = Image.open(BytesIO(image_bytes)).convert("RGBA")
+        
+        img_array = np.array(mask_image)
+        r, g, b, a = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2], img_array[:, :, 3]
+        black_mask = (r == 0) & (g == 0) & (b == 0) & (a != 0)
 
-    image_data = data['image']
-    _, image_data = image_data.split("data:image/png;base64,")
-    image_bytes = base64.b64decode(image_data)
-    mask_image = Image.open(BytesIO(image_bytes)).convert("RGBA")
-    
-    img_array = np.array(mask_image)
-    r, g, b, a = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2], img_array[:, :, 3]
-    black_mask = (r == 0) & (g == 0) & (b == 0) & (a != 0)
-
-    img_array[black_mask] = np.column_stack([
-        np.full(black_mask.sum(), 255),
-        np.full(black_mask.sum(), 0),
-        np.full(black_mask.sum(), 0), 
-        a[black_mask],
-    ])
-    final_mask = Image.fromarray(img_array)
-    
-    index = glob(f"{base_folder}/*")
-    local_mask_path = f"{base_folder}/{len(index)}_draw.png"
-    final_mask.save(local_mask_path)
+        img_array[black_mask] = np.column_stack([
+            np.full(black_mask.sum(), 255),
+            np.full(black_mask.sum(), 0),
+            np.full(black_mask.sum(), 0), 
+            a[black_mask],
+        ])
+        final_mask = Image.fromarray(img_array)
+        
+        index = glob(f"{base_folder}/*")
+        local_mask_path = f"{base_folder}/{len(index)}_draw.png"
+        final_mask.save(local_mask_path)
 
     # Save upload_image
     upload_image_path = ''
