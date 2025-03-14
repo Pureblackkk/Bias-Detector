@@ -277,6 +277,7 @@ const InpaintBlock = ({
                     selectedKeywords={selectedKeywords}
                     panoptic={panopticInUse}
                     reloadImageBatch={reloadImageBatch}
+                    invert={invert}
                 />
                 <Divider />
                 
@@ -289,7 +290,7 @@ const InpaintBlock = ({
                         defaultValue={`A picture ${generateQuery(solution)}`}
                         label="Query for inpainter"
                     />
-                    <FormControlLabel control={<Checkbox value={invert} onChange={e => setInvert(e.target.value)} />} label="Invert" />
+                    <FormControlLabel control={<Checkbox value={invert} onChange={e => {setInvert(e.target.checked)}} />} label="Invert" />
                     <Button variant="contained" onClick={(e) => inpaint(e, solIndex)}>Inpaint</Button>
                 </Box>
             </Paper>
