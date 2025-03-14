@@ -5,7 +5,7 @@ const getMaskPathFromKeywords = (
     selectedKeywords,
     keywordsPathPair,
 ) => {
-    if (selectedKeywords.size === 0) return null;
+    if (selectedKeywords.size === 0) return {};
 
     const maskPaths = [];
     const upLoadImagePaths = [];
@@ -31,7 +31,13 @@ const getMaskPathFromKeywords = (
         }
     });
 
-    return [...maskPaths, ...upLoadImagePaths, ...waterMarkPaths];
+    const pathList = [...maskPaths, ...upLoadImagePaths, ...waterMarkPaths];
+    const isMaskList = pathList.map((_, index) => index < maskPaths.length ? 1 : 0);
+
+    return {
+        pathList,
+        isMaskList,
+    };
 };
 
 const ImageMask = ({
@@ -58,7 +64,7 @@ const ImageMask = ({
                     && selectedImgURL.length > 0
                     && selectedImgURL.map((imgURL, imageIndex) => {
                         // Get corresponding mask path
-                        const maskPaths = getMaskPathFromKeywords(
+                        const { pathList, isMaskList } = getMaskPathFromKeywords(
                             selectedKeywords,
                             panoptic[imgURL]
                         );
@@ -75,7 +81,7 @@ const ImageMask = ({
                                         style={{ width: '150px', maxHeight: '150px', marginBottom: '8px' }} // Adjust marginBottom as needed
                                         alt={`Image ${solIndex}-${imageIndex}`}
                                     />
-                                    {maskPaths?.map((mask, idx) => (
+                                    {pathList?.map((mask, idx) => (
                                         <Box
                                             key={`Panoptic${solIndex}-${imageIndex}-${idx}`}
                                             component="img"
@@ -86,6 +92,7 @@ const ImageMask = ({
                                                 left: 0,
                                                 width: '150px',
                                                 height: '150px',
+                                                opacity: isMaskList[idx] ? 0.6 : 1,
                                             }}
                                             alt={`Mask Overlay ${idx}`}
                                         />
@@ -93,7 +100,7 @@ const ImageMask = ({
                                 </Box>
                                 <Box key={`Mask${solIndex}-${imageIndex}`} sx={{ position: 'relative', width: '150px', height: '150px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <div style={{ width: '150px', maxHeight: '150px', marginBottom: '8px', border: "black 1px" }} />
-                                    {maskPaths?.map((mask, idx) => (
+                                    {pathList?.map((mask, idx) => (
                                         <Box
                                             key={`Inpainted${solIndex}-${imageIndex}-${idx}`}
                                             component="img"
