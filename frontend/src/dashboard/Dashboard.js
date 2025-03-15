@@ -141,6 +141,7 @@ export default function Dashboard() {
   const [stageIndex, setStageIndex] = useState(0);
   const modalContent = useRef('');
   const [glyphMode, setGlyphMode] = useState("none") // "location", "none"
+   const [solutionsStatus, setSolutionsStatus] = useState({});
 
   // Ref for adding the selected image to the keyword select
   const updatingImagesToKeywordsRef = useRef(undefined);
@@ -315,6 +316,8 @@ export default function Dashboard() {
         panopticCategories={selectedPanopticCategories}
         label={label}
         handleBack={handleBack}
+        solutionsStatus={solutionsStatus}
+        setSolutionsStatus={setSolutionsStatus}
       />
     </>);
   };

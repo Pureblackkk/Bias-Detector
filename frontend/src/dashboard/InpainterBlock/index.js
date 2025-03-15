@@ -32,6 +32,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import DriveFolderUploadIcon from '@mui/icons-material/DriveFolderUpload';
 import BrandingWatermarkIcon from '@mui/icons-material/BrandingWatermark';
+import { color } from 'd3';
 
 // Generate query with the given query
 const generateQuery = (solution) => {
@@ -53,6 +54,8 @@ const InpaintBlock = ({
     panopticCategories,
     label,
     deleteSolution,
+    status,
+    setSolutionDone,
 }) => {
     const [invert, setInvert] = useState(false);
     const [numImages, setNumImages] = useState(solution[0]);
@@ -170,6 +173,9 @@ const InpaintBlock = ({
                 severity: 'success',
                 open: true,
             });
+
+            // Set done flag
+            setSolutionDone(generateQuery(solution));
         });
     };
 
@@ -184,9 +190,12 @@ const InpaintBlock = ({
 
     return (
         <Paper key={solIndex}>
-            <Paper sx={{ p: 2 }}>
+            <Paper sx={{ p: 2, position: 'relative'}}>
                 <Stack direction='row' sx={{ alignItems: 'center', justifyContent: 'center', position: 'relative'}}>
                     <Typography sx={{ mb: 1 }} variant="subtitle1" gutterBottom>
+                        <Typography component="span" variant="h6" sx={{ display: "inline", color: 'rgba(58, 102, 65, 1)'}}>
+                            {`Solution ${solIndex + 1} --- `}
+                        </Typography>
                         Generate <TextField
                             variant="standard"
                             value={numImages}
@@ -293,6 +302,20 @@ const InpaintBlock = ({
                     <FormControlLabel control={<Checkbox value={invert} onChange={e => {setInvert(e.target.checked)}} />} label="Invert" />
                     <Button variant="contained" onClick={(e) => inpaint(e, solIndex)}>Inpaint</Button>
                 </Box>
+
+                {/* Mask */}
+                {status && <Box
+                    sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        bgcolor: "rgba(0, 0, 0, 0.5)",
+                        zIndex: 2,
+                        borderRadius: 1,
+                    }}
+                />}
             </Paper>
             <Message
                 anchor="right"
