@@ -494,26 +494,30 @@ const Keywords = ({
                       </Tooltip>
                     </TableCell>
                     <TableCell sx={{ fontWeight: 'bold'}} align="center">
-                      <TableSortLabel
-                        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-                        active={orderBy === 'accuracy'}
-                        direction={orderBy === 'accuracy' ? order : 'asc'}
-                        onClick={() => handleSortRequest('accuracy')}
-                        hideSortIcon
-                      >
-                        Accuracy
-                      </TableSortLabel>
+                      <Tooltip title="The lower the accuracy, the more likely it is to be a bais factor">
+                        <TableSortLabel
+                          sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+                          active={orderBy === 'accuracy'}
+                          direction={orderBy === 'accuracy' ? order : 'asc'}
+                          onClick={() => handleSortRequest('accuracy')}
+                          hideSortIcon
+                        >
+                          Accuracy
+                        </TableSortLabel>
+                      </Tooltip>
                     </TableCell>
                     <TableCell sx={{ fontWeight: 'bold'}} align="center">
-                      <TableSortLabel
-                          sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-                          active={orderBy === 'compactness'}
-                          direction={orderBy === 'compactness' ? order : 'asc'}
-                          onClick={() => handleSortRequest('compactness')}
-                          hideSortIcon
-                      >
-                        Compactness
-                      </TableSortLabel>
+                      <Tooltip title="The higher the compactness, the more likely it is to be a bais factor">
+                        <TableSortLabel
+                            sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+                            active={orderBy === 'compactness'}
+                            direction={orderBy === 'compactness' ? order : 'asc'}
+                            onClick={() => handleSortRequest('compactness')}
+                            hideSortIcon
+                        >
+                          Compactness
+                        </TableSortLabel>
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
                 </TableHead>
@@ -638,14 +642,16 @@ const Keywords = ({
                         </TableSortLabel>
                       </TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }} align="center">
-                        <TableSortLabel
-                          active={orderBy === 'coefficient'}
-                          direction={orderBy === 'coefficient' ? order : 'asc'}
-                          onClick={() => handleSortRequest('coefficient')}
-                          hideSortIcon
-                        >
-                          Coefficient
-                        </TableSortLabel>
+                        <Tooltip title="The higher the coefficient, the greater the contribution to the bias of the model">
+                          <TableSortLabel
+                            active={orderBy === 'coefficient'}
+                            direction={orderBy === 'coefficient' ? order : 'asc'}
+                            onClick={() => handleSortRequest('coefficient')}
+                            hideSortIcon
+                          >
+                            Coefficient
+                          </TableSortLabel>
+                        </Tooltip>
                       </TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }} align="center">
                         <TableSortLabel
