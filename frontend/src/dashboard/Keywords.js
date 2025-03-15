@@ -481,15 +481,17 @@ const Keywords = ({
     
                     </TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }} align="center">
-                      <TableSortLabel
-                        sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-                        active={orderBy === 'score'}
-                        direction={orderBy === 'score' ? order : 'asc'}
-                        onClick={() => handleSortRequest('score')}
-                        hideSortIcon
-                      >
-                        CLIP Score
-                      </TableSortLabel>
+                      <Tooltip title="The higher the score, the more likely it is to be a bais factor">
+                        <TableSortLabel
+                          sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+                          active={orderBy === 'score'}
+                          direction={orderBy === 'score' ? order : 'asc'}
+                          onClick={() => handleSortRequest('score')}
+                          hideSortIcon
+                        >
+                          Bias Score
+                        </TableSortLabel>
+                      </Tooltip>
                     </TableCell>
                     <TableCell sx={{ fontWeight: 'bold'}} align="center">
                       <TableSortLabel
