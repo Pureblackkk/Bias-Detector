@@ -58,7 +58,7 @@ const ImageMask = ({
 
         const { img, canvas } = currentPairObject[key];
 
-        const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d", {willReadFrequently: true});
 
         if (!img.complete) {
             console.log('Not compelete');
@@ -156,20 +156,20 @@ const ImageMask = ({
                                                         width: '150px',
                                                         height: '150px',
                                                         opacity: isMaskList[idx] ? 0.6 : 1,
-                                                        visibility: invert ? 'hidden' : 'visible'
+                                                        visibility: (invert && isMaskList[idx]) ? 'hidden' : 'visible'
                                                     }}
                                                     alt={`Mask Overlay ${idx}`}
                                                     ref={(refNode) => {
                                                         const refPair = {
                                                             'img': refNode
                                                         };
-                                                        imageRefCanvasRefPair.current[`Panoptic${mask}`] = refPair;
+                                                        imageRefCanvasRefPair.current[`${imageIndex}-Panoptic${mask}`] = refPair;
                                                     }}
-                                                    onLoad={() => {invertImages(`Panoptic${mask}`)}}
+                                                    onLoad={() => {invertImages(`${imageIndex}-Panoptic${mask}`)}}
                                                 />
                                                 <canvas
                                                     ref={(refNode) => {
-                                                        imageRefCanvasRefPair.current[`Panoptic${mask}`]['canvas'] = refNode;
+                                                        imageRefCanvasRefPair.current[`${imageIndex}-Panoptic${mask}`]['canvas'] = refNode;
                                                     }}
                                                     style={{
                                                         position: 'absolute',
@@ -178,7 +178,7 @@ const ImageMask = ({
                                                         width: '150px',
                                                         height: '150px',
                                                         opacity: isMaskList[idx] ? 0.6 : 1,
-                                                        visibility: invert ? 'visible' : 'hidden',
+                                                        visibility: (invert && isMaskList[idx]) ? 'visible' : 'hidden',
                                                     }}
                                                 />
                                             </>
@@ -200,21 +200,21 @@ const ImageMask = ({
                                                         left: 0,
                                                         width: '150px',
                                                         height: '150px',
-                                                        visibility: invert ? 'hidden' : 'visible'
+                                                        visibility: (invert && isMaskList[idx]) ? 'hidden' : 'visible'
                                                     }}
                                                     ref={(refNode) => {
                                                         const refPair = {
                                                             'img': refNode
                                                         };
-                                                        imageRefCanvasRefPair.current[`Inpainted${mask}`] = refPair;
+                                                        imageRefCanvasRefPair.current[`${imageIndex}-Inpainted${mask}`] = refPair;
                                                     }}
                                                     crossOrigin="anonymous"
-                                                    onLoad={() => {invertImages(`Inpainted${mask}`)}}
+                                                    onLoad={() => {invertImages(`${imageIndex}-Inpainted${mask}`)}}
                                                     alt={`Mask Overlay ${idx}`}
                                                 />
                                                 <canvas
                                                     ref={(refNode) => {
-                                                        imageRefCanvasRefPair.current[`Inpainted${mask}`]['canvas'] = refNode;
+                                                        imageRefCanvasRefPair.current[`${imageIndex}-Inpainted${mask}`]['canvas'] = refNode;
                                                     }}
                                                     style={{
                                                         position: 'absolute',
@@ -222,7 +222,7 @@ const ImageMask = ({
                                                         left: 0,
                                                         width: '150px',
                                                         height: '150px',
-                                                        visibility: invert ? 'visible' : 'hidden',
+                                                        visibility: (invert && isMaskList[idx]) ? 'visible' : 'hidden',
                                                     }}
                                                 />
                                             </>
