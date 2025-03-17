@@ -134,95 +134,101 @@ const ImageMask = ({
                                 spacing={1}>
                                 <Box
                                     key={`Image${solIndex}-${imageIndex}`}
-                                    sx={{ position: 'relative', width: '150px', height: '150px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                    sx={{ position: 'relative', width: '150px', height: '150px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                                >
                                     <img
                                         src={`${API_URL}/api/static/` + imgURL}
                                         style={{ width: '150px', maxHeight: '150px', marginBottom: '8px' }} // Adjust marginBottom as needed
                                         alt={`Image ${solIndex}-${imageIndex}`}
                                     />
-                                    {pathList?.map((mask, idx) => (
-                                        <>
-                                            <Box
-                                                key={`Panoptic${solIndex}-${imageIndex}-${idx}`}
-                                                component="img"
-                                                src={`${API_URL}/api/` + mask} // Adjust the path to your colored mask
-                                                crossOrigin="anonymous"
-                                                sx={{
-                                                    position: 'absolute',
-                                                    top: 0,
-                                                    left: 0,
-                                                    width: '150px',
-                                                    height: '150px',
-                                                    opacity: isMaskList[idx] ? 0.6 : 1,
-                                                    visibility: invert ? 'hidden' : 'visible'
-                                                }}
-                                                alt={`Mask Overlay ${idx}`}
-                                                ref={(refNode) => {
-                                                    const refPair = {
-                                                        'img': refNode
-                                                    };
-                                                    imageRefCanvasRefPair.current[`Panoptic${mask}`] = refPair;
-                                                }}
-                                                onLoad={() => {invertImages(`Panoptic${mask}`)}}
-                                            />
-                                            <canvas
-                                                ref={(refNode) => {
-                                                    imageRefCanvasRefPair.current[`Panoptic${mask}`]['canvas'] = refNode;
-                                                }}
-                                                style={{
-                                                    position: 'absolute',
-                                                    top: 0,
-                                                    left: 0,
-                                                    width: '150px',
-                                                    height: '150px',
-                                                    opacity: isMaskList[idx] ? 0.6 : 1,
-                                                    visibility: invert ? 'visible' : 'hidden',
-                                                }}
-                                            />
-                                        </>
-                                    ))}
+                                    <Box>
+                                        {pathList?.map((mask, idx) => (
+                                            <>
+                                                <Box
+                                                    key={`Panoptic${solIndex}-${imageIndex}-${idx}`}
+                                                    component="img"
+                                                    src={`${API_URL}/api/` + mask} // Adjust the path to your colored mask
+                                                    crossOrigin="anonymous"
+                                                    sx={{
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        left: 0,
+                                                        width: '150px',
+                                                        height: '150px',
+                                                        opacity: isMaskList[idx] ? 0.6 : 1,
+                                                        visibility: invert ? 'hidden' : 'visible'
+                                                    }}
+                                                    alt={`Mask Overlay ${idx}`}
+                                                    ref={(refNode) => {
+                                                        const refPair = {
+                                                            'img': refNode
+                                                        };
+                                                        imageRefCanvasRefPair.current[`Panoptic${mask}`] = refPair;
+                                                    }}
+                                                    onLoad={() => {invertImages(`Panoptic${mask}`)}}
+                                                />
+                                                <canvas
+                                                    ref={(refNode) => {
+                                                        imageRefCanvasRefPair.current[`Panoptic${mask}`]['canvas'] = refNode;
+                                                    }}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        left: 0,
+                                                        width: '150px',
+                                                        height: '150px',
+                                                        opacity: isMaskList[idx] ? 0.6 : 1,
+                                                        visibility: invert ? 'visible' : 'hidden',
+                                                    }}
+                                                />
+                                            </>
+                                        ))}
+                                    </Box>
                                 </Box>
                                 <Box key={`Mask${solIndex}-${imageIndex}`} sx={{ position: 'relative', width: '150px', height: '150px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <div style={{ width: '150px', maxHeight: '150px', marginBottom: '8px', border: "black 1px" }} />
-                                    {pathList?.map((mask, idx) => (
-                                        <>
-                                            <Box
-                                                key={`Inpainted${solIndex}-${imageIndex}-${idx}`}
-                                                component="img"
-                                                src={`${API_URL}/api/` + mask} // Adjust the path to your colored mask
-                                                sx={{
-                                                    position: 'absolute',
-                                                    top: 0,
-                                                    left: 0,
-                                                    width: '150px',
-                                                    height: '150px',
-                                                    visibility: invert ? 'hidden' : 'visible'
-                                                }}
-                                                ref={(refNode) => {
-                                                    const refPair = {
-                                                        'img': refNode
-                                                    };
-                                                    imageRefCanvasRefPair.current[`Inpainted${mask}`] = refPair;
-                                                }}
-                                                crossOrigin="anonymous"
-                                                onLoad={() => {invertImages(`Inpainted${mask}`)}}
-                                                alt={`Mask Overlay ${idx}`}
-                                            />
-                                            <canvas
-                                                ref={(refNode) => {
-                                                    imageRefCanvasRefPair.current[`Inpainted${mask}`]['canvas'] = refNode;
-                                                }}
-                                                style={{
-                                                    position: 'absolute',
-                                                    top: 0,
-                                                    left: 0,
-                                                    width: '150px',
-                                                    height: '150px',
-                                                    visibility: invert ? 'visible' : 'hidden',
-                                                }}
-                                            />
-                                        </>
-                                    ))}
+                                    <Box sx={{ border: pathList?.length > 0 ? 'solid black 1px' : '', width: '150px', height: '150px',  position: 'absolute', top: 0, left: 0, }}>
+                                        {pathList?.map((mask, idx) => (
+                                            <>
+                                                <Box
+                                                    key={`Inpainted${solIndex}-${imageIndex}-${idx}`}
+                                                    component="img"
+                                                    src={`${API_URL}/api/` + mask} // Adjust the path to your colored mask
+                                                    sx={{
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        left: 0,
+                                                        width: '150px',
+                                                        height: '150px',
+                                                        visibility: invert ? 'hidden' : 'visible'
+                                                    }}
+                                                    ref={(refNode) => {
+                                                        const refPair = {
+                                                            'img': refNode
+                                                        };
+                                                        imageRefCanvasRefPair.current[`Inpainted${mask}`] = refPair;
+                                                    }}
+                                                    crossOrigin="anonymous"
+                                                    onLoad={() => {invertImages(`Inpainted${mask}`)}}
+                                                    alt={`Mask Overlay ${idx}`}
+                                                />
+                                                <canvas
+                                                    ref={(refNode) => {
+                                                        imageRefCanvasRefPair.current[`Inpainted${mask}`]['canvas'] = refNode;
+                                                    }}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        left: 0,
+                                                        width: '150px',
+                                                        height: '150px',
+                                                        visibility: invert ? 'visible' : 'hidden',
+                                                    }}
+                                                />
+                                            </>
+                                        ))}
+                                    </Box>
+                                  
                                 </Box>
                             </Stack>
                         )
