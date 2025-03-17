@@ -660,7 +660,7 @@ const Keywords = ({
                           onClick={() => handleSortRequest('score')}
                           hideSortIcon
                         >
-                          CLIP Score
+                          Bias Score
                         </TableSortLabel>
                       </TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }} align="center">
