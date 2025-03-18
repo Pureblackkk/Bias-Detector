@@ -59,8 +59,14 @@ const CustomLegend = (props) => {
     );
 }
 
-const getVennJsConfig = (nodes) => {
+const getVennJsConfig = (nodes, pieData) => {
     const labelValueObject = {};
+    const colorMap = {}
+
+    // Set background color based on pie data settings
+    pieData.forEach((data, idx) => {
+        colorMap[data.name] = COLORS[idx % COLORS.length];
+    });
 
     // Solve the single object
     nodes.forEach(({ label, size }) => {
@@ -96,7 +102,11 @@ const getVennJsConfig = (nodes) => {
     });
 
     const dataset = Object.values(labelValueObject);
-    return dataset;
+
+    return {
+        config: dataset,
+        colorMap,
+    };
 }
 
 const getVennConfig = (nodes) => {
@@ -226,40 +236,41 @@ const Rule = ({
         removeKeywordFromRule(ruleIndex, keywordIndex);
     };
 
-    useEffect(() => {
-        if (rule.keywords[0]) {
-            const config = getVennConfig(nodes);
+    // useEffect(() => {
+    //     if (rule.keywords[0]) {
+    //         const config = getVennConfig(nodes);
 
-            // Clear if it has instance
-            if (vennJsRef.current) {
-                vennJsRef.current.destroy();
-            }
+    //         // Clear if it has instance
+    //         if (vennJsRef.current) {
+    //             vennJsRef.current.destroy();
+    //         }
 
-            vennJsRef.current = new VennDiagramChart(vennCanvasRef.current, config);
-        }
+    //         vennJsRef.current = new VennDiagramChart(vennCanvasRef.current, config);
+    //     }
 
-        return () => {
-            if (vennJsRef.current) {
-                vennJsRef.current.destroy();
-            }
-        };
-    }, [rule]);
+    //     return () => {
+    //         if (vennJsRef.current) {
+    //             vennJsRef.current.destroy();
+    //         }
+    //     };
+    // }, [rule]);
     
     useEffect(() => {
         if (!vennRef.current) return;
-        const vennJsSets = getVennJsConfig(nodes);
+        const { config: vennJsSets, colorMap } = getVennJsConfig(nodes, pieData);
         const chart = VennDiagram().width(300).height(200);
 
         const svg = d3.select(vennRef.current);
         svg.datum(vennJsSets).call(chart);
 
         // TODO: maybe optimize the zoom logic
-
-        // background color
-        d3.selectAll(".venn-circle path")
-        .style("fill", "#d3d3d3")
-        .style("fill-opacity", 0.5) 
-        .style("stroke", "#999");
+        d3.select(vennRef.current)
+        .selectAll(".venn-circle")
+        .each(function (d) {
+          const key = d.sets.join("/"); // 转换集合名称
+          d3.select(this).select("path").style("fill", colorMap[key] || "#ddd");
+        });
+  
 
         // text style
         d3.selectAll(".venn-circle text")

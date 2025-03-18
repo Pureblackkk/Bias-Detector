@@ -99,11 +99,14 @@ const Keywords = ({
   const [addingButtonStyle, setAddingButtonStyle] = useState(undefined);
   const [revertedImagePanel, setRevertedImagePanel] = useState(false);
   const hoverAddingButtonTarget = useRef(undefined);
+  const tableCellHeight = useRef(0);
   
   /**
    * On click action
    */
   const onClick = function (e, data) {
+    if (stageIndex !==0 ) return;
+    
     if (equalKeywordList(clickedKeyword, data.keyword)) {
       setClickedKeyword([''])
       setClickedObj({})
@@ -465,13 +468,17 @@ const Keywords = ({
                 <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "rgb(212, 212, 212)", zIndex: 2 }}>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold' }} align='center'>
-                      <Button>
-                        {
-                          <Tooltip title={'Add Keyword'}>
-                            <AddCircleOutlineIcon onClick={() => registerManualKeyword(false, 'Manual')}/>
-                          </Tooltip>
-                        }
-                      </Button>
+                      {
+                        stageIndex === 0  && (
+                          <Button>
+                            {
+                              <Tooltip title={'Add Keyword'}>
+                                <AddCircleOutlineIcon onClick={() => registerManualKeyword(false, 'Manual')}/>
+                              </Tooltip>
+                            }
+                          </Button>
+                        )
+                      }
                       <TableSortLabel
                         sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
                         active={orderBy === 'keyword'}
@@ -753,89 +760,181 @@ const Keywords = ({
                         }}
                       >
                         {/* Keyword */}
-                        <TableCell component="th" scope="row" sx={{
-                          position: 'relative',
-                          overflow: 'visible',
-                        }}>
-                          <Box sx={{ position: 'relative' }}>
-                            {
-                              equalKeywords(data?.keyword, hoveredData?.keyword) &&
-                              // Reverted images hover button
-                              <IconButton 
-                                sx={{
-                                  position: 'absolute',
-                                  top: -25,
-                                  right: -30,
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  setRevertedImagePanel(true);
-                                }}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  if (revertedImagePanel) {
-                                    setRevertedImagePanel(false);
-                                  } else {
-                                    setRevertedImagePanel(true);
-                                  }
-                                }}
-                              >
-                                <ArrowRightIcon />
-                              </IconButton>
-                            }
-                            {data.keyword.map((k, index2) => (
-                              <Stack direction='row' sx={{alignItems: 'center', justifyContent: 'space-between'}}>
-                                <TextField
-                                  key={index2}
-                                  variant="standard"
-                                  value={k}
-                                  onChange={(e) => onKeywordChange(e, index, index2)}
-                                  onClick={(e) => onClick(e, data)}
-                                  sx={{ width: "100%" }}
-                                />
+                        {
+                          stageIndex === 0 ? (
+                            <TableCell component="th" scope="row" 
+                              sx={{
+                                position: 'relative',
+                                overflow: 'visible',
+                              }}
+                              ref={(node) => {
+                                tableCellHeight.current = node?.clientHeight;
+                              }}
+                            >
+                              <Box sx={{ position: 'relative' }}>
                                 {
-                                  (index2 > 0) && <LinkOffIcon
+                                  equalKeywords(data?.keyword, hoveredData?.keyword) &&
+                                  // Reverted images hover button
+                                  <IconButton 
+                                    sx={{
+                                      position: 'absolute',
+                                      top: -25,
+                                      right: -30,
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setRevertedImagePanel(true);
+                                    }}
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
-                                      onDecoupling(data, index2, index);
+                                      if (revertedImagePanel) {
+                                        setRevertedImagePanel(false);
+                                      } else {
+                                        setRevertedImagePanel(true);
+                                      }
                                     }}
-                                    sx={{fontSize: '15px', cursor: 'pointer'}}
-                                  />
+                                  >
+                                    <ArrowRightIcon />
+                                  </IconButton>
                                 }
-                              </Stack>
-                            ))}
-                          </Box>
-                          {
-                            revertedImagePanel && equalKeywords(data?.keyword, hoveredData?.keyword) &&
-                            <Box
-                              sx={ (listIndex >= (sortedIndices.length - 4)) ? {
-                                position: 'absolute',
-                                top: '-310px',
-                                left: '100%',
-                              } : {
-                                position: 'absolute',
-                                top: '0',
-                                left: '100%',
+                                {data.keyword.map((k, index2) => (
+                                  <Stack direction='row' sx={{alignItems: 'center', justifyContent: 'space-between'}}>
+                                    <TextField
+                                      key={index2}
+                                      variant="standard"
+                                      value={k}
+                                      onChange={(e) => onKeywordChange(e, index, index2)}
+                                      onClick={(e) => onClick(e, data)}
+                                      sx={{ width: "100%" }}
+                                    />
+                                    {
+                                      (index2 > 0) && <LinkOffIcon
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          onDecoupling(data, index2, index);
+                                        }}
+                                        sx={{fontSize: '15px', cursor: 'pointer'}}
+                                      />
+                                    }
+                                  </Stack>
+                                ))}
+                              </Box>
+                              {
+                                revertedImagePanel && equalKeywords(data?.keyword, hoveredData?.keyword) &&
+                                <Box
+                                  sx={{
+                                    position: 'absolute',
+                                    top: `${Math.max(-310, - listIndex * (tableCellHeight.current ?? 0))}px`,
+                                    left: '100%',
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setRevertedImagePanel(false);
+                                  }}
+                                >
+                                  <RevertedImage
+                                    key={index}
+                                    label={label}
+                                    selectedRevertedImgInfo={selectedRevertedImgInfo}
+                                    data={data}
+                                    popoverCollapsed={popoverCollapsed}
+                                  />
+                                </Box>
+                              }
+                            </TableCell>
+                          ) : (
+                            <TableCell component="th" scope="row" 
+                              sx={{
+                                position: 'relative',
+                                overflow: 'visible',
                               }}
-                              onMouseLeave={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setRevertedImagePanel(false);
+                              ref={(node) => {
+                                tableCellHeight.current = node?.clientHeight
                               }}
                             >
-                              <RevertedImage
-                                key={index}
-                                label={label}
-                                selectedRevertedImgInfo={selectedRevertedImgInfo}
-                                data={data}
-                                popoverCollapsed={popoverCollapsed}
-                              />
-                            </Box>
-                          }
-                        </TableCell>
+                              <Box sx={{ position: 'relative' }}>
+                                {
+                                  equalKeywords(data?.keyword, hoveredData?.keyword) &&
+                                  // Reverted images hover button
+                                  <IconButton 
+                                    sx={{
+                                      position: 'absolute',
+                                      top: -25,
+                                      right: -30,
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setRevertedImagePanel(true);
+                                    }}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      if (revertedImagePanel) {
+                                        setRevertedImagePanel(false);
+                                      } else {
+                                        setRevertedImagePanel(true);
+                                      }
+                                    }}
+                                  >
+                                    <ArrowRightIcon />
+                                  </IconButton>
+                                }
+                                {data.keyword.map((k, index2) => (
+                                  <Stack direction='row' sx={{alignItems: 'center', justifyContent: 'space-between'}}>
+                                    <Typography
+                                      key={index2}
+                                      variant="standard"
+                                      onChange={(e) => onKeywordChange(e, index, index2)}
+                                      onClick={(e) => onClick(e, data)}
+                                      sx={{ width: "100%" }}
+                                    >
+                                      {k}
+                                    </Typography>
+                                    {
+                                      (index2 > 0) && <LinkOffIcon
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          onDecoupling(data, index2, index);
+                                        }}
+                                        sx={{fontSize: '15px', cursor: 'pointer'}}
+                                      />
+                                    }
+                                  </Stack>
+                                ))}
+                              </Box>
+                              {
+                                revertedImagePanel && equalKeywords(data?.keyword, hoveredData?.keyword) &&
+                                <Box
+                                  sx={{
+                                    position: 'absolute',
+                                    top: `${Math.max(-310, - listIndex * (tableCellHeight.current ?? 0))}px`,
+                                    left: '100%',
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setRevertedImagePanel(false);
+                                  }}
+                                >
+                                  <RevertedImage
+                                    key={index}
+                                    label={label}
+                                    selectedRevertedImgInfo={selectedRevertedImgInfo}
+                                    data={data}
+                                    popoverCollapsed={popoverCollapsed}
+                                  />
+                                </Box>
+                              }
+                            </TableCell>
+                          )
+                        }
+                      
                         {/* Coefficient */}
                         <TableCell sx={{ backgroundColor: scoreColor(avgLimeCoefficient(data) * 3) }} align="center">
                           <Typography>{avgLimeCoefficient(data).toFixed(2)}</Typography>
