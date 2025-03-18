@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Box, Stack, Button, IconButton, Paper, TextField, Grid, Typography, Popover } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import _ from 'lodash';
 import { GraphCanvas } from 'reagraph';
 import { PieChart, Pie, Tooltip, Legend, Cell } from 'recharts';
+import { VennDiagramChart, extractSets } from 'chartjs-chart-venn';
+import * as d3 from "d3";
+import { VennDiagram } from "venn.js";
+
 
 const COLORS = ['#FF6384', '#36A2EB', '#FFCD56', '#4BC0C0', '#9966FF'];
 
@@ -55,6 +59,104 @@ const CustomLegend = (props) => {
     );
 }
 
+const getVennJsConfig = (nodes) => {
+    const labelValueObject = {};
+
+    // Solve the single object
+    nodes.forEach(({ label, size }) => {
+        if (!label.includes('\/')) {
+            labelValueObject[label] = {
+                sets: [label],
+                size,
+            };
+        }
+    });
+
+    // Solve the overlap object
+    nodes.forEach(({ label, size }) => {
+        if(!label.includes('\/')) return;
+
+        // Check the missing label
+        label.split('\/')?.forEach((label) => {
+            if (!labelValueObject[label]) {
+                labelValueObject[label] = {
+                    sets: [label],
+                    size,
+                };
+            } else {
+                labelValueObject[label]['size'] = labelValueObject[label]['size'] + size;
+            }
+        });
+
+        // Assign the joint label
+        labelValueObject[label] = {
+            sets: label.split('\/'),
+            size,
+        };
+    });
+
+    const dataset = Object.values(labelValueObject);
+    return dataset;
+}
+
+const getVennConfig = (nodes) => {
+    let currentValue = 0;
+    const labelValueObject = {};
+
+    const generateValue = (generateNum) => {
+        const newValueList = new Array(generateNum).fill(0).map(() => {
+            const copyedCurrentValue = currentValue.toString();
+            currentValue += 1;
+            return copyedCurrentValue;
+        });
+
+        return newValueList;
+    };
+
+    // Solve the single object
+    nodes.forEach(({ label, size }) => {
+        if (!label.includes('\/')) {
+            labelValueObject[label] = generateValue(size);
+        }
+    });
+
+    // Solve the overlap object
+    nodes.forEach(({ label, size }) => {
+        if(!label.includes('\/')) return;
+        const commonValue = generateValue(size);
+        label.split('\/')?.forEach((label) => {
+            if (!labelValueObject[label]) {
+                labelValueObject[label] = [];
+            }
+
+            labelValueObject[label] = labelValueObject[label]?.concat(commonValue);
+        });
+    })
+
+    const configData = Object.entries(labelValueObject).map(([label, values]) => ({
+        label,
+        values,
+    }));
+
+    const config = {
+        type: "venn",
+        data: extractSets(
+            configData,
+            {
+              label: "Sports dỉagram"
+            }
+        ),
+        options: {
+            borderWidth: 1,
+            responsive: true,
+            maintainAspectRatio: false, 
+            aspectRatio: 2,
+        }
+    };
+
+    return config;
+};
+
 const Rule = ({
     rule,
     ruleIndex,
@@ -66,6 +168,10 @@ const Rule = ({
     draggedKeywordObj,
     registerComplete
 }) => {
+    const vennCanvasRef = useRef(null);
+    const vennJsRef = useRef(null);
+    const vennRef = useRef(null);
+
     const onDrop = (e) => {
         e.preventDefault();
         if (!draggedKeywordObj) return;
@@ -120,6 +226,56 @@ const Rule = ({
         removeKeywordFromRule(ruleIndex, keywordIndex);
     };
 
+    useEffect(() => {
+        if (rule.keywords[0]) {
+            const config = getVennConfig(nodes);
+
+            // Clear if it has instance
+            if (vennJsRef.current) {
+                vennJsRef.current.destroy();
+            }
+
+            vennJsRef.current = new VennDiagramChart(vennCanvasRef.current, config);
+        }
+
+        return () => {
+            if (vennJsRef.current) {
+                vennJsRef.current.destroy();
+            }
+        };
+    }, [rule]);
+    
+    useEffect(() => {
+        if (!vennRef.current) return;
+        const vennJsSets = getVennJsConfig(nodes);
+        const chart = VennDiagram().width(300).height(200);
+
+        const svg = d3.select(vennRef.current);
+        svg.datum(vennJsSets).call(chart);
+
+        // TODO: maybe optimize the zoom logic
+
+        // background color
+        d3.selectAll(".venn-circle path")
+        .style("fill", "#d3d3d3")
+        .style("fill-opacity", 0.5) 
+        .style("stroke", "#999");
+
+        // text style
+        d3.selectAll(".venn-circle text")
+        .style("fill", "#333")
+        .style("font-size", (d) => `10px`);
+
+        d3
+        .selectAll(".venn-circle")
+        .on("mouseover", function () {
+            d3.select(this).select("path").style("fill-opacity", 0.5);
+        })
+        .on("mouseout", function () {
+            d3.select(this).select("path").style("fill-opacity", 0.3);
+        });
+    }, [rule]);
+
     return (
         <Stack
             direction="row"
@@ -152,7 +308,9 @@ const Rule = ({
                                 position: "relative",
                             }}
                         >
-                            <GraphCanvas
+                            <div ref={vennRef} style={{position: 'relative', top: 25}}/>
+                            {/* <canvas ref={vennCanvasRef} style={{position: 'relative', top: 25}}></canvas> */}
+                            {/* <GraphCanvas
                                 layoutType="forceDirected2d"
                                 layoutOverrides={{ linkDistance: 5 }}
                                 defaultNodeSize={10}
@@ -161,7 +319,7 @@ const Rule = ({
                                 nodes={nodes}
                                 edges={edges}
                                 draggable={true}
-                            />
+                            /> */}
                         </Box>
                     )}
 

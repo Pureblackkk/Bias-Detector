@@ -141,7 +141,10 @@ export default function Dashboard() {
   const [stageIndex, setStageIndex] = useState(0);
   const modalContent = useRef('');
   const [glyphMode, setGlyphMode] = useState("none") // "location", "none"
-   const [solutionsStatus, setSolutionsStatus] = useState({});
+  const [solutionsStatus, setSolutionsStatus] = useState({});
+  const initialRule = { keywords: [], biasName: "" };
+  const [rules, setRules] = useState([initialRule]);
+
 
   // Ref for adding the selected image to the keyword select
   const updatingImagesToKeywordsRef = useRef(undefined);
@@ -300,6 +303,8 @@ export default function Dashboard() {
         setKeywords={setKeywords}
         selectedTrainData={selectedTrainData}
         handleForward={handleForward}
+        rules={rules}
+        setRules={setRules}
       />
     </>);
   };

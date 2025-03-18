@@ -15,10 +15,9 @@ function Solver({
   setKeywords,
   selectedTrainData,
   handleForward,
+  rules,
+  setRules,
 }) {
-  const initialRule = { keywords: [], biasName: "" };
-  const [rules, setRules] = useState([initialRule]);
-
   const addRule = () => {
     const newRule = { keywords: [], biasName: "" }; // Each rule starts with an empty list of components
     setRules([...rules, newRule]);
