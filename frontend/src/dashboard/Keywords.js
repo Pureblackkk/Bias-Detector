@@ -216,6 +216,9 @@ const Keywords = ({
    * On drop action
    */
   const onDrop = function (e, droppedKeyword, droppedIndex) {
+    // Disable merge action
+    return;
+
     e.preventDefault();
     if (!draggedKeywordObj) return;
     if (draggedKeywordObj.index === droppedIndex) return mergeComplete();
@@ -544,70 +547,110 @@ const Keywords = ({
                       }}
                     >
                       {/* Keyword */}
-                      <TableCell component="th" scope="row" sx={{padding: '10px 0px 10px 10px'}}>
-                        <Stack
-                          direction='row'
-                          alignItems='center'
-                        >
-                          { equalKeywords(data?.keyword, hoveredData?.keyword) && 
-                            <Stack direction='column' sx={addingButtonStyle ?? undefined}>
-                              <AddBoxIcon 
-                                sx={{position: 'relative', ml: -3}}
-                                onClick={(e) => {
-                                  setClickedKeyword(data.keyword);
-                                  setClickedObj(data);
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  registerManualKeyword(
-                                    false,
-                                    'Adding',
-                                    onAddingImageToKeyword(index),
-                                  )
-                                }}
-                              />
-                              <IndeterminateCheckBoxIcon 
-                                sx={{position: 'relative', ml: -3}}
-                                onClick={(e) => {
-                                  setClickedKeyword(data.keyword.sort());
-                                  setClickedObj(data);
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  registerManualKeyword(
-                                    false,
-                                    'Deleting',
-                                    onDeletingImageToKeyword(index),
-                                  )
-                                }}
-                              />
+                      {
+                        stageIndex === 0 ? (
+                          <TableCell component="th" scope="row" sx={{padding: '10px 0px 10px 10px'}}>
+                            <Stack
+                              direction='row'
+                              alignItems='center'
+                            >
+                              { equalKeywords(data?.keyword, hoveredData?.keyword) && 
+                                <Stack direction='column' sx={addingButtonStyle ?? undefined}>
+                                  <AddBoxIcon 
+                                    sx={{position: 'relative', ml: -3}}
+                                    onClick={(e) => {
+                                      setClickedKeyword(data.keyword);
+                                      setClickedObj(data);
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      registerManualKeyword(
+                                        false,
+                                        'Adding',
+                                        onAddingImageToKeyword(index),
+                                      )
+                                    }}
+                                  />
+                                  <IndeterminateCheckBoxIcon 
+                                    sx={{position: 'relative', ml: -3}}
+                                    onClick={(e) => {
+                                      setClickedKeyword(data.keyword.sort());
+                                      setClickedObj(data);
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      registerManualKeyword(
+                                        false,
+                                        'Deleting',
+                                        onDeletingImageToKeyword(index),
+                                      )
+                                    }}
+                                  />
+                                </Stack>
+                              }
+                              <Stack direction='column'>
+                                {data.keyword.map((k, index2) => (
+                                      <Stack direction='row' sx={{alignItems: 'center', justifyContent: 'space-between'}}>
+                                        <TextField
+                                          key={index2}
+                                          variant="standard"
+                                          value={k}
+                                          onChange={(e) => onKeywordChange(e, index, index2)}
+                                          onClick={(e) => onClick(e, data)}
+                                          sx={{ width: "100%" }}
+                                        />
+                                        {
+                                          (index2 > 0) && <LinkOffIcon
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              onDecoupling(data, index2, index);
+                                            }}
+                                            sx={{fontSize: '15px', cursor: 'pointer'}}
+                                          />
+                                        }
+                                      </Stack>
+                                  ))
+                                }
+                              </Stack>
                             </Stack>
-                          }
-                          <Stack direction='column'>
-                            {data.keyword.map((k, index2) => (
-                                  <Stack direction='row' sx={{alignItems: 'center', justifyContent: 'space-between'}}>
-                                    <TextField
-                                      key={index2}
-                                      variant="standard"
-                                      value={k}
-                                      onChange={(e) => onKeywordChange(e, index, index2)}
-                                      onClick={(e) => onClick(e, data)}
-                                      sx={{ width: "100%" }}
-                                    />
-                                    {
-                                      (index2 > 0) && <LinkOffIcon
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-                                          onDecoupling(data, index2, index);
-                                        }}
-                                        sx={{fontSize: '15px', cursor: 'pointer'}}
-                                      />
-                                    }
-                                  </Stack>
-                              ))
-                            }
-                          </Stack>
-                        </Stack>
-                      </TableCell>
+                          </TableCell>
+                        ) : (
+                          <TableCell component="th" scope="row" sx={{padding: '10px'}} align="center">
+                            <Stack
+                              direction='row'
+                              alignItems='center'
+                              justifyContent='center'
+                            >
+                              <Stack direction='column'>
+                                {
+                                  data.keyword.map((k, index2) => (
+                                      <Stack direction='row' sx={{alignItems: 'center', justifyContent: 'space-between'}}>
+                                        <Typography
+                                          key={index2}
+                                          variant="standard"
+                                          onChange={(e) => onKeywordChange(e, index, index2)}
+                                          onClick={(e) => onClick(e, data)}
+                                          sx={{ width: "100%" }}
+                                        >
+                                          {k}
+                                        </Typography>
+                                        {
+                                          (index2 > 0) && <LinkOffIcon
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              onDecoupling(data, index2, index);
+                                            }}
+                                            sx={{fontSize: '15px', cursor: 'pointer'}}
+                                          />
+                                        }
+                                      </Stack>
+                                  ))
+                                }
+                              </Stack>
+                            </Stack>
+                        </TableCell>
+                        )
+                      }
                       {/* Score */}
                       <TableCell sx={{ backgroundColor: scoreColor(weightedSumScore(data))}} align="center">
                         <Typography>{weightedSumScore(data).toFixed(2)}</Typography>

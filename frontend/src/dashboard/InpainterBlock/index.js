@@ -192,14 +192,24 @@ const InpaintBlock = ({
         <Paper key={solIndex}>
             <Paper sx={{ p: 2, position: 'relative'}}>
                 <Stack direction='row' sx={{ alignItems: 'center', justifyContent: 'center', position: 'relative'}}>
-                    <Typography sx={{ mb: 1 }} variant="subtitle1" gutterBottom>
-                        <Typography component="span" variant="h6" sx={{ display: "inline", color: 'rgba(58, 102, 65, 1)'}}>
-                            {`Solution ${solIndex + 1} --- `}
+                    <Typography component="span" variant="h5" sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        fontWeight: 600,
+                    }}>
+                        {`Inpainter`}
+                    </Typography>
+                    <Typography variant="subtitle1" gutterBottom>
+                        <Typography component="span" variant="h6" sx={{ display: "inline", color: 'rgba(58, 102, 65, 1)', marginRight: '15px'}}>
+                            {`Solution ${solIndex + 1}:`}
                         </Typography>
                         Generate <TextField
                             variant="standard"
                             value={numImages}
                             onChange={e => setNumImages(parseInt(e.target.value) || 0)}
+                            sx={{width: '90px'}}
+                            inputProps={{ style: { textAlign: 'center' } }} 
                         /> images {generateQuery(solution)}
                     </Typography>
 

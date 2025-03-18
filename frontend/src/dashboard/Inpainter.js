@@ -86,7 +86,6 @@ const Inpainter = ({
         <Grid item xs={12} sx={{ height: 'auto'}}>
             <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column'}}>
                 <div>
-                    <h3>Inpainter</h3>
                     <Container maxWidth="false" sx={{
                         overflowY: 'auto',
                         height: '85vh',
