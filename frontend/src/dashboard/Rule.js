@@ -271,7 +271,6 @@ const Rule = ({
           d3.select(this).select("path").style("fill", colorMap[key] || "#ddd");
         });
   
-
         // text style
         d3.selectAll(".venn-circle text")
         .style("fill", "#333")

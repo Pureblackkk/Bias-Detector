@@ -132,7 +132,7 @@ function Solver({
     })
 
     // Set global solutions
-    setSolutions([...solutions, ...newSolutions]);
+    setSolutions([...newSolutions]);
 
     // Automatically push forward
     handleForward();

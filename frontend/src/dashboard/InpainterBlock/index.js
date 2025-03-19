@@ -364,7 +364,6 @@ const InpaintBlock = ({
                 </DialogTitle>
                 <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                    Once deleted, the keyword corresponding to the solution will not be restored
                 </DialogContentText>
                 </DialogContent>
                 <DialogActions>
