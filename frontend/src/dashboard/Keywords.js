@@ -348,7 +348,7 @@ const Keywords = ({
 
   const overallCD = distanceFromCentroid(prediction.map(d => d.image));
   const shiftingColor = 1;
-  const centroidColor = d3.scaleDiverging([overallCD.min - shiftingColor, overallCD.average, overallCD.max + shiftingColor], d3.interpolateRdBu);
+  const centroidColor = d3.scaleDiverging([overallCD.max + shiftingColor, overallCD.average, overallCD.min - shiftingColor], d3.interpolateRdBu);
   const scoreColor = d3.scaleDiverging([5, 0, -5], d3.interpolateRdBu);
 
   const calculateAccuracy = function (data) {
@@ -491,7 +491,7 @@ const Keywords = ({
     
                     </TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }} align="center">
-                      <Tooltip title="The higher the score, the more likely it is to be a bais factor">
+                      <Tooltip title="The higher the score, the more likely it is to be biased">
                         <TableSortLabel
                           sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
                           active={orderBy === 'score'}
@@ -504,7 +504,7 @@ const Keywords = ({
                       </Tooltip>
                     </TableCell>
                     <TableCell sx={{ fontWeight: 'bold'}} align="center">
-                      <Tooltip title="The lower the accuracy, the more likely it is to be a bais factor">
+                      <Tooltip title="The lower the accuracy, the more likely it is to be biased">
                         <TableSortLabel
                           sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
                           active={orderBy === 'accuracy'}
@@ -517,13 +517,13 @@ const Keywords = ({
                       </Tooltip>
                     </TableCell>
                     <TableCell sx={{ fontWeight: 'bold'}} align="center">
-                      <Tooltip title="The higher the compactness, the more likely it is to be a bais factor">
+                      <Tooltip title="The lower the compactness, the more likely it is to be biased">
                         <TableSortLabel
-                            sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-                            active={orderBy === 'compactness'}
-                            direction={orderBy === 'compactness' ? order : 'asc'}
-                            onClick={() => handleSortRequest('compactness')}
-                            hideSortIcon
+                          sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+                          active={orderBy === 'compactness'}
+                          direction={orderBy === 'compactness' ? order : 'asc'}
+                          onClick={() => handleSortRequest('compactness')}
+                          hideSortIcon
                         >
                           Compactness
                         </TableSortLabel>
