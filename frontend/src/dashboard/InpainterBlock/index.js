@@ -163,6 +163,7 @@ const InpaintBlock = ({
             invert,
             solution: numImages,
             solution_query: queryRef.current.value,
+            solution_strategy: generateQuery(solution),
             dataset: dataset,
             class_name: label,
         })
@@ -325,6 +326,7 @@ const InpaintBlock = ({
                         bgcolor: "rgba(0, 0, 0, 0.5)",
                         zIndex: 2,
                         borderRadius: 1,
+                        pointerEvents: 'none',
                     }}
                 />}
             </Paper>

@@ -57,6 +57,7 @@ const callInpaintAPI = (data) => {
             invert: data.invert,
             solution: data.solution,
             solution_query: data.solution_query,
+            solution_strategy: data.solution_strategy,
             dataset: data.dataset,
             class_name: data.class_name,
         }),
