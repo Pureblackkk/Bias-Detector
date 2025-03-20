@@ -163,13 +163,13 @@ const ImageMask = ({
                                                         const refPair = {
                                                             'img': refNode
                                                         };
-                                                        imageRefCanvasRefPair.current[`${imageIndex}-Panoptic${mask}`] = refPair;
+                                                        imageRefCanvasRefPair.current[`${solIndex}-${imageIndex}-${idx}-Panoptic${mask}`] = refPair;
                                                     }}
-                                                    onLoad={() => {invertImages(`${imageIndex}-Panoptic${mask}`)}}
+                                                    onLoad={() => {invertImages(`${solIndex}-${imageIndex}-${idx}-Panoptic${mask}`)}}
                                                 />
                                                 <canvas
                                                     ref={(refNode) => {
-                                                        imageRefCanvasRefPair.current[`${imageIndex}-Panoptic${mask}`]['canvas'] = refNode;
+                                                        imageRefCanvasRefPair.current[`${solIndex}-${imageIndex}-${idx}-Panoptic${mask}`]['canvas'] = refNode;
                                                     }}
                                                     style={{
                                                         position: 'absolute',
@@ -206,15 +206,15 @@ const ImageMask = ({
                                                         const refPair = {
                                                             'img': refNode
                                                         };
-                                                        imageRefCanvasRefPair.current[`${imageIndex}-Inpainted${mask}`] = refPair;
+                                                        imageRefCanvasRefPair.current[`${solIndex}-${imageIndex}-${idx}-Inpainted${mask}`] = refPair;
                                                     }}
                                                     crossOrigin="anonymous"
-                                                    onLoad={() => {invertImages(`${imageIndex}-Inpainted${mask}`)}}
+                                                    onLoad={() => {invertImages(`${solIndex}-${imageIndex}-${idx}-Inpainted${mask}`)}}
                                                     alt={`Mask Overlay ${idx}`}
                                                 />
                                                 <canvas
                                                     ref={(refNode) => {
-                                                        imageRefCanvasRefPair.current[`${imageIndex}-Inpainted${mask}`]['canvas'] = refNode;
+                                                        imageRefCanvasRefPair.current[`${solIndex}-${imageIndex}-${idx}-Inpainted${mask}`]['canvas'] = refNode;
                                                     }}
                                                     style={{
                                                         position: 'absolute',

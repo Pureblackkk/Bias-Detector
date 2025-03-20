@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Container, Paper, Grid } from '@mui/material';
 import _ from 'lodash';
 import InpaintBlock from './InpainterBlock/index';
@@ -25,6 +25,8 @@ const Inpainter = ({
     label,
     handleBack,
 }) => {
+    const scrollableDivRef = useRef(null);
+
     const updateSolutionStatus = () => {
         const newStatus = _.cloneDeep(solutionsStatus);
 
@@ -61,6 +63,14 @@ const Inpainter = ({
         const newStatus = _.cloneDeep(solutionsStatus);
         newStatus[solQuery] = true;
         setSolutionsStatus(newStatus);
+
+        // Scroll to the top
+        setTimeout(() => {
+            scrollableDivRef.current.scrollTo({
+                top: 0,
+                behavior: "smooth", // 平滑滚动
+            });
+        });
     };
 
     // Ranked solutions by status
@@ -86,7 +96,7 @@ const Inpainter = ({
         <Grid item xs={12} sx={{ height: 'auto'}}>
             <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column'}}>
                 <div>
-                    <Container maxWidth="false" sx={{
+                    <Container maxWidth="false" ref={scrollableDivRef} sx={{
                         overflowY: 'auto',
                         height: '85vh',
                         display: 'flex',
@@ -95,6 +105,7 @@ const Inpainter = ({
                     }}>
                         {solForShow.map(({sol, idx}) => 
                             <InpaintBlock
+                                key={idx}
                                 solution={sol}
                                 status={solutionsStatus[getQueeryAsKey(sol)]}
                                 setSolutionDone={setSolutionDone}

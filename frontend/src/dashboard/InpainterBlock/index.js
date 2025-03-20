@@ -291,6 +291,7 @@ const InpaintBlock = ({
                 
                 {/* Block for image and mask */}
                 <ImageMask
+                    key={solIndex}
                     solIndex={solIndex}
                     selectedImgURL={selectedImgURL}
                     selectedKeywords={selectedKeywords}
