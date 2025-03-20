@@ -14,6 +14,7 @@ class UserData(db.Model):
     invert = db.Column(db.Boolean)
     solution = db.Column(db.Integer)
     solution_query = db.Column(db.String(36))
+    solution_strategy = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     
 
@@ -27,6 +28,7 @@ def save_to_db(
     invert,
     solution,
     solution_query,
+    solution_strategy,
     dataset,
     class_name,
 ):
@@ -41,6 +43,7 @@ def save_to_db(
             invert=invert,
             solution=solution,
             solution_query=solution_query,
+            solution_strategy=solution_strategy,
             dataset=dataset,
             class_name=class_name,
         )
