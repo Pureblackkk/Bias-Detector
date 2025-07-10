@@ -28,8 +28,8 @@ from .tasks import *
 
 def parse_option():
     parser = argparse.ArgumentParser('SEEM Demo', add_help=False)
-    parser.add_argument('--conf_files', default="SEEM/configs/seem/focall_unicl_lang_demo.yaml", metavar="FILE", help='path to config file', )
-    parser.add_argument('--device', default='cuda:0', help='device')
+    parser.add_argument('--conf_files', default="/home/pureblackkkk/data/Bias-Detector/backend/SEEM/configs/seem/focall_unicl_lang_demo.yaml", metavar="FILE", help='path to config file', )
+    parser.add_argument('--device', default='cuda:2', help='device')
     cfg = parser.parse_known_args()[0]
     return cfg
 
@@ -48,7 +48,7 @@ if 'focalt' in cfg.conf_files:
         os.system("wget {}".format("https://huggingface.co/xdecoder/SEEM/resolve/main/seem_focalt_v0.pt"))
     cur_model = 'Focal-T'
 elif 'focal' in cfg.conf_files:
-    pretrained_pth = os.path.join("seem_focall_v0.pt")
+    pretrained_pth = '/home/pureblackkkk/data/Bias-Detector/backend/seem_focall_v0.pt'
     if not os.path.exists(pretrained_pth):
         os.system("wget {}".format("https://huggingface.co/xdecoder/SEEM/resolve/main/seem_focall_v0.pt"))
     cur_model = 'Focal-L'

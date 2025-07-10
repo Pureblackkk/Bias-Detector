@@ -3,7 +3,8 @@ import json
 import os
 import random
 
-BASE_FOLDER = '/home/pureblackkkk/my_volume/Bias-Detector/backend/post-training/augmentations'
+BASE_FOLDER = '/home/pureblackkkk/data/Bias-Detector/backend/post-training/augmentations'
+STATIC_ROOT_FOLDER = '/home/pureblackkkk/data/Bias-Detector/backend'
 
 def create_solution_folder_by_uid(
     dataset,
@@ -61,10 +62,43 @@ def get_built_in_dict(urbancars_json, waterbirds_json):
         }
     return res_dict
 
-def sample_solution_imgs(numbers, folder_path):
-    all_files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+def sample_solution_imgs(
+    numbers,
+    img_folder_path,
+    panoptic_folder_path,
+    dataset,
+):
+    built_in_segmentation_keywords = {
+        'waterbirds': ['bird'],
+        'urbancars': ['car', 'truck']
+    }
+    priority_keywords = built_in_segmentation_keywords[dataset]
 
-    if numbers >= len(all_files):
-        return all_files
 
-    return random.sample(all_files, numbers)
+    priority_image_name = []
+    for image_name in os.listdir(panoptic_folder_path):
+        image_folder_path = os.path.join(panoptic_folder_path, image_name)
+        elements = set(os.listdir(image_folder_path))
+        
+        for e in elements:
+            if e in priority_keywords:
+                priority_image_name.append(image_name)
+                break
+    
+    if numbers <= len(priority_image_name):
+        # If the required num is smmaler than the length of priority_image_name
+        sampled_imgs = random.sample(priority_image_name, numbers)
+    else:
+        sampled_imgs = priority_image_name
+        
+        # Select the remain ones
+        remain_names = set(os.listdir(panoptic_folder_path)) - set(priority_image_name)
+        remain_number = numbers - len(priority_image_name)
+
+        sampled_imgs.extend(random.sample(list(remain_names), remain_number))
+
+    # Create path for the imgs
+    return [os.path.join(img_folder_path, f'{img_name}.jpg') for img_name in sampled_imgs]
+
+def solve_path_for_static_file(path):
+    return os.path.join(STATIC_ROOT_FOLDER, path)

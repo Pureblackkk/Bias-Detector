@@ -27,6 +27,7 @@ class UserWorkFLow:
         keyword_list,
         mask_path_list,
     ):
+        print('****** Solve solution: ', solution_name)
         # Create requested folder (Solution + Image)
         solution_folder = create_solution_folder_by_uid(
             dataset=dataset,
@@ -43,12 +44,19 @@ class UserWorkFLow:
             )
         
         # Get grouped processor
-        draw_keyword_mask_pairs, manual_keywords, builtin_keywords = self.keyword_processor.group_keywords(
+        upload_overlay_masks, watermark_overlay_masks, draw_keyword_mask_pairs, manual_keywords, builtin_keywords = self.keyword_processor.group_keywords(
             dataset,
             label,
             keyword_list,
             mask_path_list,
         )
+
+        print('******keyword_list', keyword_list)
+        print('------watermark_overlay_masks', watermark_overlay_masks)
+        print('------upload_overlay_masks', upload_overlay_masks)
+        print('------draw_keyword_mask_pairs', draw_keyword_mask_pairs),
+        print('------manual_keywords', manual_keywords),
+        print('------built_in_keywords', builtin_keywords)
 
         # Segment image based on keywords
         img_mask_pair_list = self.user_segmentor.generate_segmentaion(
@@ -64,6 +72,10 @@ class UserWorkFLow:
 
         # Inpaint for current solution
         for img_path, masks_path in tqdm(img_mask_pair_list):
+            # If has built in keywords but no masks_path then skip the inpainting
+            if len(masks_path) <= 0 and len(builtin_keywords) > 0:
+                continue
+
             # Get the generated image_folder
             img_name = solve_img_name_from_abs_path(img_path)
             img_folder = create_inpaining_folder_for_image(
@@ -81,12 +93,20 @@ class UserWorkFLow:
                 f'inpainting.jpg'
             )
 
-            self.inpainter.inpaint_image(
+            # Using mask for inpainting
+            img = self.inpainter.inpaint_image(
                 img_path=img_path,
                 masks_path=masks_path,
                 invert=invert,
                 prompt=prompt,
                 merged_mask_path=merged_mask_path,
-                output_img_path=output_img_path,
+            )
+
+            # Combined with overlay
+            self.inpainter.compose_image(
+                inpainted_img = img,
+                output_path = output_img_path,
+                watermark_overlay_paths = watermark_overlay_masks,
+                upload_overlay_paths = upload_overlay_masks,
             )
 

@@ -8,6 +8,11 @@ backend/static/gradcam/*
 backend/static/watermark/*
 backend/static/upload_image/*
 backend/data.db
+backend/post-training/basemodel/
+backend/post-training/paper_result/*
+backend/post-training/retraining_result/*
+backend/static.zip
+backend/seem_focall_v0.pt
 
 npm-debug.log*
 yarn-debug.log*

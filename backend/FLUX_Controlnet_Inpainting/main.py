@@ -11,19 +11,19 @@ check_min_version("0.30.2")
 
 
 # Build pipeline
-controlnet = FluxControlNetModel.from_pretrained("/home/pureblackkkk/my_volume/models/FLUX.1-dev-Controlnet-Inpainting-Alpha", torch_dtype=torch.bfloat16)
+controlnet = FluxControlNetModel.from_pretrained("/home/pureblackkkk/data/models/FLUX.1-dev-Controlnet-Inpainting-Alpha", torch_dtype=torch.bfloat16)
 transformer = FluxTransformer2DModel.from_pretrained(
-    "black-forest-labs/FLUX.1-dev", subfolder='transformer', torch_dtype=torch.bfloat16
+    "/home/pureblackkkk/data/models/FLUX.1-dev", subfolder='transformer', torch_dtype=torch.bfloat16
 )
 pipe = FluxControlNetInpaintingPipeline.from_pretrained(
-    "black-forest-labs/FLUX.1-dev",
-    controlnet=controlnet,
+    "/home/pureblackkkk/data/models/FLUX.1-dev",
     transformer=transformer,
     torch_dtype=torch.bfloat16
-).to("cuda")
+).to("cuda:2")
+
 pipe.transformer.to(torch.bfloat16)
 pipe.controlnet.to(torch.bfloat16)
-
+pipe.enable_model_cpu_offload()
 
 def inpaint_image(
     img_path,

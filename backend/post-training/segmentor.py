@@ -8,6 +8,8 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from SEEM.demo.seem.app import inference
 
+ROOT_FOLDER = '/home/pureblackkkk/data/Bias-Detector/backend'
+
 class Segmentor:
     def segment(img, prompt):
         result = inference(img, ["Text"], None, prompt, None, None)
@@ -21,9 +23,12 @@ class UserImageSegmentor:
     ):
         self.uid = uid
         self.segmentor = segmentor
+    
+    def __add_prefix_for_mask(self, path):
+        return os.path.join(ROOT_FOLDER, path)
 
     def __deal_with_draw_mask(self, draw_keyword_mask_pairs):
-        return [mask_path for _, mask_path in draw_keyword_mask_pairs]
+        return [self.__add_prefix_for_mask(mask_path) for _, mask_path in draw_keyword_mask_pairs]
         
     def __deal_with_builtin_mask(
         self,
@@ -32,10 +37,13 @@ class UserImageSegmentor:
         panoptic_dict
     ):
         match = re.search(r"(train/.*)", img)
-
+        
         if match:
             img_path = match.group(1)
-            return [panoptic_dict[img_path][keyword] for keyword in keywords if keyword in panoptic_dict[img_path]]
+            if not (img_path in panoptic_dict):
+                print('!!!!!! not found built in mask for img', img_path)
+                return []
+            return [self.__add_prefix_for_mask(panoptic_dict[img_path][keyword]) for keyword in keywords if keyword in panoptic_dict[img_path]]
 
         return []
 
@@ -105,7 +113,7 @@ class UserImageSegmentor:
                 built_in_keywords,
                 panoptic_dict
             ))
-
+            
             # Append manual mask list
             img_mask.extend(self.__deal_with_manual_mask(
                 img,
