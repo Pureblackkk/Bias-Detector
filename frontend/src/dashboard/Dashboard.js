@@ -45,8 +45,8 @@ const returnFetchPromise = async (path) => {
  */
 const parseKeywordsAndLimeKeywords = (allKeywords, limeKeywords) => {
   return allKeywords?.map((data) => {
-    const filerRes = limeKeywords.filter((item) => data.keyword === item.keyword);
-    const limeData = filerRes.length === 1 ? filerRes[0] : undefined;
+    const filerRes = limeKeywords?.filter((item) => data.keyword === item.keyword);
+    const limeData = filerRes?.length === 1 ? filerRes[0] : undefined;
     const hasLimeData = limeData !== undefined;
 
     return {
@@ -120,6 +120,7 @@ export default function Dashboard() {
         setDataLoad(true);
         console.info('ALL JSON File Loaded!')
       } catch(err) {
+        setDataLoad(true);
         console.error('Loading Json File Failed', err)
       }
     };
